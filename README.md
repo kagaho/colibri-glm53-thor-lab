@@ -1,12 +1,62 @@
 # GLM-5.3-Flash native int4 on Jetson Thor
 
-A reproducible study of Colibri's SSD-backed mixture-of-experts inference on a
-128 GB NVIDIA Jetson Thor. The question is whether a roughly **195 GB native
-checkpoint** can run usefully when only part of its experts fit in shared memory,
-and where the time goes: storage, expert computation, attention, or prompt processing.
+**A 195 GB native int4 checkpoint on one 128 GB NVIDIA Jetson Thor.**
+This study tests Colibri's SSD-backed expert streaming, compares CPU and CUDA,
+and measures how long you wait for output when the model exceeds RAM.
 
-This is an experiment in running a model larger than RAM. It does not substitute
-a smaller GGUF for the native checkpoint, and it does not assume the outcome.
+[Results](#benchmark-results) · [Run it](#run) · [How it works](docs/ARCHITECTURE.md) · [All files](docs/INDEX.md)
+
+![CPU versus conservative CUDA: completion tokens per second and TTFT proxy](docs/assets/results-overview.png)
+
+## Benchmark results
+
+<!-- METRICS START -->
+| Measured metric | CPU | Conservative CUDA |
+|---|---:|---:|
+| **Completion throughput** | **0.415 tok/s** | **0.517 tok/s** |
+| **TTFT proxy — p50** | **44.47 s** | **28.94 s** |
+| TTFT proxy — observed range | 43.85–48.98 s | 28.22–41.96 s |
+| Full request duration — p50 | 153.09 s | 114.77 s |
+| Known-answer smoke checks | 2/2 passed | 2/2 passed |
+| Measured HTTP requests / reported completion tokens | 4 / 256 | 4 / 256 |
+| Storage reads during measured requests | 377.1 GB | 365.9 GB |
+| Lowest global available memory during the run | 75.55 GiB | 53.81 GiB |
+<!-- METRICS END -->
+
+**What this demonstrates:** the native checkpoint runs with CPU or conservative
+CUDA at this operating point, and both pass the two known-answer checks. Output
+is slow: the valid CUDA configuration took about **29 seconds to first output**
+and delivered **0.517 completion tokens/s** over the measured batch.
+
+**Metric definitions:** throughput includes prefill and HTTP overhead.
+**TTFT proxy** means time to the first nonempty streamed output, which can be
+reasoning content; the benchmark does not record exact first-token timing,
+per-token latency, or steady-state decode speed. Four requests within one server
+start per configuration are correlated observations. Conservative CUDA uses
+`COLI_CUDA_TC_GEMM=0`. The default CUDA attempt produced non-finite logits and
+is excluded from the useful-output comparison.
+
+[Full results and failed attempts](docs/RESULTS.md) · [Metric definitions and controls](docs/METHODOLOGY.md) · [Machine-readable measurements](results/summary.json)
+
+## Where the time goes
+
+![CPU and conservative CUDA engine-reported expert disk, expert compute, attention, and output-head timers](docs/assets/phase-times.png)
+
+The expert-compute timer is the largest displayed counter in both valid
+configurations. Conservative CUDA reports lower expert-compute and attention
+times, while its expert-disk timer is higher. These phase timers can overlap;
+their sum is not a wall-time breakdown.
+[Phase interpretation and limitations](docs/RESULTS.md#reported-phase-times).
+
+## What SSD streaming and memory placement look like
+
+![Requested versus reported CUDA expert-tier capacity and storage reads for the measured requests](docs/assets/placement-and-reads.png)
+
+The failed CUDA attempt requested a 16 GiB expert tier but reported **1.54 GiB**;
+the valid conservative attempt reported **16.00 GiB**. CPU and GPU allocations
+share Thor's physical memory. The roughly **366–377 GB read per measured batch**
+includes repeated reads of the 195 GB checkpoint.
+[Memory and I/O interpretation](docs/RESULTS.md#placement-and-storage-reads) · [Architecture diagram](docs/ARCHITECTURE.md).
 
 <!-- STATUS START -->
 **Current status:** 3 full-model attempt(s) recorded, 2 completed. See [results](docs/RESULTS.md) for measurements and failures.
@@ -33,13 +83,6 @@ flowchart LR
     results --> extend["Reproduce or extend the study"]
     diagnostics --> extend
 ```
-
-![Measured throughput and first-output latency for quality-checked CPU and conservative-CUDA runs](docs/assets/results-overview.svg)
-
-The graph reports whole-batch HTTP completion throughput, not steady decode
-speed. Dots are four requests within one server start per configuration. The
-default CUDA failure is excluded from the performance comparison. Read the
-[metric definitions and limits](docs/METHODOLOGY.md) before comparing systems.
 
 ## Study map
 
@@ -76,13 +119,7 @@ The native container keeps non-expert source weights in BF16; the engine's
 `GLM53_BITS` setting controls their runtime representation. The model is a
 third-party requantization of Z.ai's weights, not an official int4 checkpoint.
 
-## Initial comparison
-
-The completed short HTTP study measured **0.415 completion tok/s on CPU** and
-**0.517 with conservative CUDA**, including prefill and request overhead. Both
-passed the two known-answer smoke checks. The default CUDA path produced
-non-finite logits and is excluded from useful-output performance. This is one
-machine and a small workload, not a general performance ranking.
+## Experiment configurations
 
 | Profile | Backend | RAM expert-cache budget | Device expert-tier budget |
 |---|---|---:|---:|
