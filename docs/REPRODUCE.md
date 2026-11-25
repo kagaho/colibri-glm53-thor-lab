@@ -148,7 +148,7 @@ double-count shared pages; the physical-memory constraint is better understood
 using global available memory alongside them.
 
 The curated summary omits absolute commands and local process identities.
-Weights, raw logs, runtime state, the local PDF, and machine cleanup records
+Weights, raw logs, runtime state, the local PDF, and unrelated administration records
 are ignored by Git. Review staged files before publishing your portfolio.
 
 ## 8. Local Git preparation

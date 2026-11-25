@@ -30,8 +30,9 @@ the gateway/engine's retained state. Inspect actual prompt-token/forward counts
 and keep this behavior identical across profiles; do not label the requests
 as uncached prefills.
 
-The profile order is CUDA then CPU. This is a first functional study, not a
-balanced performance trial. Follow-up comparisons must interleave profile
+The first attempt used default CUDA and produced invalid output. After
+diagnosis, the valid comparison ran CPU then conservative CUDA. This is a first
+functional study, not a balanced performance trial. Follow-up comparisons must interleave profile
 order and collect more independent trials. Requests within one server are
 correlated by its evolving cache and must not be called independent runs.
 

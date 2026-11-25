@@ -58,14 +58,14 @@ def main():
         "metric": "HTTP completion-token throughput includes prefill, queueing, and HTTP overhead; it is not steady decode tok/s",
         "limitations": ["One machine and two short synthetic prompts; not a model intelligence benchmark",
             "I/O policy is recorded per attempt; the initial native-default direct-I/O run was mislabeled in its original metadata and is corrected in the curated summary",
-            "Initial profile order is CUDA then CPU; OS cache state and drift can confound comparisons",
+            "Initial default CUDA failed numerically; valid comparison order was CPU then conservative CUDA, so cache state and drift can confound comparisons",
             "CPU and GPU profiles differ in device expert capacity as well as compute; no isolated GPU-kernel speedup claim",
             "Quality checks are two strict known-answer smoke tests, not a general quality score"], "runs": runs}
     (ROOT / "results/summary.json").write_text(json.dumps(result, indent=2) + "\n")
     text = ["# Results", "", "Full-model measurements are pending." if not runs else
         "These are initial measurements on one Thor. Failed attempts remain in the dataset.", "",
         "The build and GLM CUDA correctness evidence is in [build-validation.json](../results/build-validation.json).", "",
-        "| Run | Status | Profile | HTTP completion tok/s | First-output p50 (s) | Disk reads (GB) |", "|---|---|---|---:|---:|---:|"]
+        "| Run | Status | Profile | Smoke checks | HTTP completion tok/s | First-output p50 (s) | Disk reads (GB) |", "|---|---|---|---|---:|---:|---:|"]
     for run in runs:
         h = run.get("http_summary") or {}
         rate = h.get("successful_completion_tokens_per_second") if run["status"] == "complete" else None
@@ -73,7 +73,8 @@ def main():
         read = run.get("measurement_read_bytes")
         def fmt(v):
             return "unavailable" if v is None else f"{v:.3f}"
-        text.append(f"| {run['run_id']} | {run['status']} | {run['profile']} | {fmt(rate)} | {fmt(first)} | {fmt(None if read is None else read/1e9)} |")
+        quality = (f"{run['quality_passed']}/{run['quality_total']}" if run.get('quality_total') is not None else "not run")
+        text.append(f"| {run['run_id']} | {run['status']} | {run['profile']} | {quality} | {fmt(rate)} | {fmt(first)} | {fmt(None if read is None else read/1e9)} |")
     text += ["", "Invalid-output timings are excluded from the headline throughput column; raw diagnostic rates remain in JSON.", "",
              "HTTP throughput includes the whole measured batch. It must not be compared directly with steady-decode benchmarks.", "",
              "See [summary.json](../results/summary.json) for per-attempt metrics, memory, integrity checks, and limitations.", "",

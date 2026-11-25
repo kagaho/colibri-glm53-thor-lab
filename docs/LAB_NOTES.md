@@ -12,11 +12,9 @@ crossed midnight while the initial audit and setup were in progress.
    mounts. The host has approximately 122 GiB usable shared memory, no swap, and
    one 1 TB WD PC SN5000S NVMe. Recorded CUDA 13.2.86, driver 595.113, Jetson Linux
    R39.2.2, and an unchanged 120W power mode.
-3. Audited storage. Recovered approximately 121 GiB from an unused alternative
-   model cache, disposable caches, unused Docker images, and build cache. Kept
-   every existing container and its dependencies. In particular, the large
-   benchmark cache was required by the protected stopped model and was retained.
-   Private container details and cleanup receipts are excluded from this repo.
+3. Confirmed that the selected native checkpoint can be staged on the available
+   NVMe. Kept the study focused on inference, memory placement, and measured
+   model behavior; unrelated machine administration is outside this repository.
 4. Researched current project documentation and first-person measurements.
    Historical reports of missing Colibri GLM CUDA support are obsolete for
    v2.2.0. No measured current Colibri/Thor throughput was assumed.
@@ -105,7 +103,7 @@ crossed midnight while the initial audit and setup were in progress.
     Python packages were added.
 21. Initialized a local Git repository on `main`. No remote was configured or
     pushed. Confirmed that model files, upstream sources, raw logs, local PDF,
-    and prior private cleanup receipts are ignored.
+    and private machine-administration records are ignored.
 22. Hardened process ownership and resuming: added per-workspace download and
     campaign locks, exact-binary checks, bounded shutdown, and a stop helper that
     checks process identity. Resumed the transfer after adding the downloader
@@ -115,7 +113,7 @@ crossed midnight while the initial audit and setup were in progress.
     measured inference. Progress and errors are recorded under ignored `runtime/`
     and `logs/` paths; curated results are generated separately.
 
-## Observations still to be made
+## Initial campaign outcome
 
 The original campaign subsequently completed its CUDA requests but produced
 invalid output; its CPU stage stopped at a port preflight error. The full-model
@@ -123,11 +121,10 @@ isolation tests, metadata corrections, runner fixes, and resumed campaign are
 recorded in [DIAGNOSTICS.md](DIAGNOSTICS.md). These findings supersede the
 earlier expectation that the initial campaign would run through uninterrupted.
 
-- Successful load and actual GPU execution with all native shards.
-- Per-request first output, completion throughput, phase times, disk reads,
-  cache-hit behavior, and peak memory.
-- Whether the two short strict quality checks pass, fail, or hit token limits.
-- Repeated and interleaved trials before drawing a comparative conclusion.
-
-These are pending until raw measurements exist. The generated results page must
-be read with its status and limitations, including any failed attempts.
+The resumed campaign finished on November 25. CPU and conservative CUDA both
+passed arithmetic (`391`) and sorting (`[-2, 0, 4, 4, 9]`). Across four short
+HTTP requests each, the CPU configuration delivered 0.415 completion tok/s and
+conservative CUDA 0.517. First-output p50 was 44.472 s and 28.940 s respectively.
+These include prefill and request overhead, not steady decode. The single
+configuration comparison is descriptive; independent interleaved trials remain
+future work. See [RESULTS.md](RESULTS.md) and the structured summary.

@@ -45,6 +45,12 @@ third-party requantization of Z.ai's weights, not an official int4 checkpoint.
 
 ## Initial comparison
 
+The completed short HTTP study measured **0.415 completion tok/s on CPU** and
+**0.517 with conservative CUDA**, including prefill and request overhead. Both
+passed the two known-answer smoke checks. The default CUDA path produced
+non-finite logits and is excluded from useful-output performance. This is one
+machine and a small workload, not a general performance ranking.
+
 | Profile | Backend | RAM expert-cache budget | Device expert-tier budget |
 |---|---|---:|---:|
 | `cpu-32` | CPU, same CUDA-capable executable with GPU disabled | 32 decimal GB | 0 |
@@ -88,7 +94,7 @@ inspect progress with `python3 scripts/status.py`.
 
 Tracked: configuration, model manifest, workloads, lab scripts, methods, build
 evidence, and selected results. Ignored: weights, upstream checkout, process
-state, raw logs, the local PDF, and earlier machine cleanup records. The scripts
+state, raw logs, the local PDF, and unrelated machine-administration records. The scripts
 never publish or push the repository automatically.
 
 Colibri is Apache-2.0 licensed. The selected model is MIT licensed by its model
