@@ -184,6 +184,20 @@ Colibri is Apache-2.0 licensed. The selected model is MIT licensed by its model
 publishers. Their code and weights remain separate, with their original licenses
 and attribution; this repository records the experiment.
 
+## Upstream projects and attribution
+
+This is an independent reproducibility and benchmarking study built on the work of the following upstream projects:
+
+- **[Colibri](https://github.com/JustVugg/colibri)** — inference engine and SSD-backed expert streaming, developed by JustVugg and contributors. This study uses [v2.2.0](https://github.com/JustVugg/colibri/releases/tag/v2.2.0), pinned to [commit e479104](https://github.com/JustVugg/colibri/tree/e479104ae01bdc40ce81e675299b1d230891b321).
+- **[Z.ai — GLM-5.3-Flash](https://huggingface.co/zai-org/GLM-5.3-Flash)** — original model and architecture.
+- **[Justvugg — GLM-5.3-Flash-colibri-int4-g64](https://huggingface.co/Justvugg/GLM-5.3-Flash-colibri-int4-g64/tree/fe1d408f252c9c53a0d688aa54e41d9bdfdfd510)** — third-party native int4 checkpoint, pinned to revision `fe1d408f252c9c53a0d688aa54e41d9bdfdfd510`.
+
+**This lab's contribution:** independent Jetson AGX Thor integration and reproducibility scripts, CPU/CUDA benchmark methodology and measurements, numerical correctness diagnostics, a validated conservative CUDA workaround, and documented limitations. The workaround is not an upstream kernel fix.
+
+Thanks to the upstream developers and contributors for making this experiment possible. This study is not an official Colibri, Z.ai, or NVIDIA project.
+
+See [References](docs/REFERENCES.md) for additional upstream sources.
+
 ## License
 
 This project's original code and documentation are licensed under the [Apache License 2.0](LICENSE).
