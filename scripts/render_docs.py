@@ -43,7 +43,8 @@ def save(fig, name, description, source_hash):
     import matplotlib.pyplot as plt
     folder = ROOT / "docs/assets"
     folder.mkdir(parents=True, exist_ok=True)
-    metadata = {"Title": description, "Description": "Source: results/summary.json, SHA256 " + source_hash,
+    source = "Source: results/summary.json, SHA256 " + source_hash if source_hash else "Diagram source: scripts/render_docs.py"
+    metadata = {"Title": description, "Description": source,
                 "Creator": "scripts/render_docs.py", "Date": None}
     svg = folder / (name + ".svg")
     fig.savefig(svg, metadata=metadata)
@@ -55,6 +56,44 @@ def save(fig, name, description, source_hash):
 def title(fig, heading, subheading):
     fig.text(.06, .94, heading, size=19, weight="bold", va="top")
     fig.text(.06, .875, subheading, size=10.5, color=MUTED, va="top")
+
+
+def workflow():
+    """Draw a compact workflow with an opaque background for the README."""
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch, Polygon
+    fig, ax = plt.subplots(figsize=(10, 4.9))
+    fig.subplots_adjust(left=.02, right=.98, bottom=.02, top=.98)
+    ax.set(xlim=(0, 1), ylim=(0, 1))
+    ax.axis("off")
+    def box(x, y, text, color="#edf2f8", width=.25, height=.14):
+        ax.add_patch(FancyBboxPatch((x-width/2, y-height/2), width, height,
+            boxstyle="round,pad=0.01,rounding_size=0.018", facecolor=color,
+            edgecolor="#b8cad6", linewidth=1.2, zorder=2))
+        ax.text(x, y, text, ha="center", va="center", fontsize=12, color=INK, zorder=3)
+    def arrow(start, end):
+        ax.annotate("", xy=end, xytext=start,
+            arrowprops={"arrowstyle": "-|>", "color": MUTED, "lw": 1.6,
+                        "mutation_scale": 15, "shrinkA": 0, "shrinkB": 0}, zorder=1)
+    box(.16, .82, "Pin engine\n& native weights")
+    box(.50, .82, "Build & run\nvalidation checks")
+    box(.84, .82, "Benchmark &\ncollect telemetry", "#edf6f6")
+    arrow((.295, .82), (.365, .82))
+    arrow((.635, .82), (.705, .82))
+    ax.add_patch(Polygon([(.50, .64), (.66, .52), (.50, .40), (.34, .52)],
+        facecolor="#fff4d9", edgecolor="#d7ba71", linewidth=1.2, zorder=2))
+    ax.text(.50, .52, "Finite output +\nanswer checks?", ha="center", va="center", fontsize=11.5, color=INK)
+    arrow((.84, .74), (.628, .544))
+    box(.22, .27, "Interpret valid\nresults", "#edf6f6", width=.28)
+    box(.78, .27, "Keep failure\n& diagnose", "#fbeded", width=.28)
+    arrow((.36, .50), (.22, .35))
+    arrow((.64, .50), (.78, .35))
+    ax.text(.25, .45, "Pass", ha="center", color="#008778", fontsize=11, weight="bold")
+    ax.text(.75, .45, "Fail", ha="center", color=RED, fontsize=11, weight="bold")
+    box(.50, .07, "Reproduce or extend", "#f1f4f6", width=.32, height=.10)
+    arrow((.22, .19), (.329, .10))
+    arrow((.78, .19), (.671, .10))
+    save(fig, "study-workflow", "Study workflow: pin, validate, benchmark, check output, interpret or diagnose, and extend", None)
 
 
 def overview(summary, runs, source_hash):
@@ -246,7 +285,8 @@ def file_description(path):
     if path.startswith("docs/assets/"):
         label = {"results-overview": "Valid-run throughput and first-output latency",
                  "phase-times": "Separate engine-reported phase timers",
-                 "placement-and-reads": "Requested/reported tier capacity and physical read counters"}.get(Path(path).stem, "Generated figure")
+                 "placement-and-reads": "Requested/reported tier capacity and physical read counters",
+                 "study-workflow": "Compact study workflow with an opaque white background"}.get(Path(path).stem, "Generated figure")
         return label + ("; scalable SVG." if path.endswith(".svg") else "; portable PNG.")
     if path.endswith(".py"):
         doc = ast.get_docstring(ast.parse((ROOT / path).read_text())) or "Python lab tool."
@@ -292,20 +332,22 @@ def main():
     overview(summary, runs, source_hash)
     phases(runs, source_hash)
     resources(summary, runs, source_hash)
+    workflow()
     readme_metrics(runs)
     provenance = {"source": "results/summary.json", "source_sha256": source_hash,
         "renderer": "scripts/render_docs.py", "renderer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "matplotlib_version": matplotlib.__version__,
+        "diagram_source": "scripts/render_docs.py",
         "performance_gate": "Complete run, finite output, and every strict smoke check passed",
         "notes": ["Observed measurements only; default invalid CUDA excluded from speed comparison",
             "HTTP requests within one server start per profile are correlated, not independent trials",
             "Phase timers shown separately without assuming additive timing",
             "TTFT proxy is first nonempty streamed output, not exact first-token timing; steady decode and per-token latency were not measured",
             "SVG IDs and metadata are deterministic in the recorded local renderer; fonts/layout can vary across Matplotlib versions"],
-        "figures": [name + suffix for name in ("results-overview", "phase-times", "placement-and-reads") for suffix in (".svg", ".png")]}
+        "figures": [name + suffix for name in ("results-overview", "phase-times", "placement-and-reads", "study-workflow") for suffix in (".svg", ".png")]}
     (ROOT / "docs/assets/figures.json").write_text(json.dumps(provenance, indent=2) + "\n")
     build_index()
-    print("Rendered 3 charts as SVG and PNG; refreshed README metrics, chart provenance, and file index.")
+    print("Rendered 3 charts and workflow as SVG and PNG; refreshed README metrics, provenance, and file index.")
 
 
 if __name__ == "__main__":

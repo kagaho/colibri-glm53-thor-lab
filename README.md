@@ -76,16 +76,11 @@ includes repeated reads of the 195 GB checkpoint.
 | Try questions or extend the benchmark | [Interactive chat](docs/INTERACTIVE.md) · [Next experiments](docs/NEXT_EXPERIMENTS.md) | Scripts, prompts, regression tests, and follow-up controls |
 | Find a specific file or deeper detail | [Complete file index](docs/INDEX.md) | Every public tracked file linked with its purpose |
 
-```mermaid
-flowchart LR
-    inputs["Pin engine and native weights"] --> build["Build and validate"]
-    build --> run["Run requests and collect telemetry"]
-    run --> gate{"Finite output and smoke checks?"}
-    gate -->|Pass| results["Interpret measured results"]
-    gate -->|Fail| diagnostics["Keep failure and isolate workaround"]
-    results --> extend["Reproduce or extend the study"]
-    diagnostics --> extend
-```
+**Study workflow**
+
+<img src="docs/assets/study-workflow.png" alt="Pin engine and weights, build and validate, benchmark, check finite output and answers, then interpret valid results or diagnose failure before extending the study." width="760">
+
+[Full architecture and evidence flow](docs/ARCHITECTURE.md) · [Scalable workflow image](docs/assets/study-workflow.svg)
 
 ## Study map
 
