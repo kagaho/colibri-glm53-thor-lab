@@ -183,3 +183,9 @@ never publish or push the repository automatically.
 Colibri is Apache-2.0 licensed. The selected model is MIT licensed by its model
 publishers. Their code and weights remain separate, with their original licenses
 and attribution; this repository records the experiment.
+
+## License
+
+This project's original code and documentation are licensed under the [Apache License 2.0](LICENSE).
+
+Colibri and the GLM-5.3-Flash model are third-party components governed by their respective licenses.
