@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import statistics
 import subprocess
 
@@ -58,12 +59,25 @@ def title(fig, heading, subheading):
 
 def overview(summary, runs, source_hash):
     import matplotlib.pyplot as plt
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5.2))
-    fig.subplots_adjust(left=.17, right=.96, top=.72, bottom=.24, wspace=.45)
+    from matplotlib.patches import FancyBboxPatch
+    fig, axes = plt.subplots(1, 2, figsize=(12, 7.2))
+    fig.subplots_adjust(left=.17, right=.96, top=.55, bottom=.20, wspace=.45)
     counts = {len(run["http_attempts"]) for run in runs}
     count_label = f"{next(iter(counts))} HTTP requests per configuration" if len(counts) == 1 else "request counts vary by configuration"
-    title(fig, "What did the native int4 study measure?",
-          f"Jetson Thor · valid output only · {count_label} · one server start each")
+    title(fig, "Native int4 on Jetson Thor: measured results",
+          f"SSD-backed Colibri · {count_label} · one server start each")
+    featured = next((run for run in reversed(runs) if run["profile"] == "cuda-conservative-16-32"), runs[-1])
+    featured_http = featured["http_summary"]
+    cards = [("Completion throughput", f'{featured_http["successful_completion_tokens_per_second"]:.3f} tok/s'),
+             ("TTFT proxy · p50", f'{featured_http["successful_first_output_seconds"]["p50"]:.2f} s'),
+             ("Known-answer smoke checks", f'{featured["quality_passed"]} / {featured["quality_total"]}')]
+    for index, (label, value) in enumerate(cards):
+        x = .06 + index * .31
+        fig.add_artist(FancyBboxPatch((x, .68), .28, .145, transform=fig.transFigure,
+            boxstyle="round,pad=0.008,rounding_size=0.012", facecolor="#edf6f6", edgecolor="none", zorder=0))
+        fig.text(x+.015, .792, label, size=10.5, color=MUTED)
+        fig.text(x+.015, .736, value, size=24, weight="bold", color=COLORS.get(featured["profile"], INK))
+        fig.text(x+.015, .698, LABELS.get(featured["profile"], featured["profile"]), size=9.5, color=MUTED)
     for pos, run in enumerate(runs):
         label, color = LABELS.get(run["profile"], run["profile"]), COLORS.get(run["profile"], "#456d99")
         rate = run["http_summary"]["successful_completion_tokens_per_second"]
@@ -84,16 +98,43 @@ def overview(summary, runs, source_hash):
         ax.xaxis.grid(True, color="#e7edf1")
         ax.set_axisbelow(True)
     axes[0].set_xlim(0, max(r["http_summary"]["successful_completion_tokens_per_second"] for r in runs)*1.3)
-    axes[0].set_title("Whole-batch completion throughput", loc="left", size=12, pad=13)
-    axes[0].set_xlabel("Completion tokens / second, including prefill")
+    axes[0].set_title("Completion tokens/s · higher is better", loc="left", size=12, pad=13)
+    axes[0].set_xlabel("Whole HTTP batch, including prefill")
     axes[1].set_xlim(0, max(a["first_output_seconds"] for r in runs for a in r["http_attempts"])*1.15)
-    axes[1].set_title("Time to first nonempty output", loc="left", size=12, pad=13)
+    axes[1].set_title("TTFT proxy · lower is better", loc="left", size=12, pad=13)
     axes[1].set_xlabel("Seconds · dots are individual requests")
-    qualities = {run["quality_total"] for run in runs}
-    quality_label = f"{next(iter(qualities))}/{next(iter(qualities))}" if len(qualities) == 1 else "all"
-    fig.text(.06, .12, f"All displayed configurations passed {quality_label} strict smoke checks.", size=11, weight="bold")
-    fig.text(.06, .065, "Default CUDA generated non-finite logits and is excluded. Small, ordered study; no confidence intervals or general speedup claim.", size=9.4, color=RED)
+    fig.text(.06, .095, "TTFT proxy = first nonempty streamed output; exact first-token timing and steady decode speed were not recorded.", size=9.5, color=MUTED)
+    fig.text(.06, .045, "Default CUDA produced invalid output and is excluded. Small, ordered study; requests are correlated within each server start.", size=9.4, color=RED)
     save(fig, "results-overview", "Measured throughput and first-output latency of valid native int4 runs", source_hash)
+
+
+def readme_metrics(runs):
+    """Keep the front-page table in sync with the latest quality-checked profiles."""
+    latest = {run["profile"]: run for run in runs}
+    selected = [latest[name] for name in LABELS if name in latest]
+    if not selected:
+        selected = list(latest.values())
+    def http(run):
+        return run["http_summary"]
+    rows = [
+        ("**Completion throughput**", lambda r: f'**{http(r)["successful_completion_tokens_per_second"]:.3f} tok/s**'),
+        ("**TTFT proxy — p50**", lambda r: f'**{http(r)["successful_first_output_seconds"]["p50"]:.2f} s**'),
+        ("TTFT proxy — observed range", lambda r: f'{min(a["first_output_seconds"] for a in r["http_attempts"]):.2f}–{max(a["first_output_seconds"] for a in r["http_attempts"]):.2f} s'),
+        ("Full request duration — p50", lambda r: f'{http(r)["successful_duration_seconds"]["p50"]:.2f} s'),
+        ("Model/server startup", lambda r: f'{r["startup_seconds"]:.2f} s'),
+        ("Known-answer smoke checks", lambda r: f'{r["quality_passed"]}/{r["quality_total"]} passed'),
+        ("Measured HTTP requests / reported completion tokens", lambda r: f'{http(r)["requests"]} / {http(r)["reported_successful_completion_tokens"]}'),
+        ("Storage reads during measured requests", lambda r: f'{r["measurement_read_bytes"]/1e9:.1f} GB'),
+        ("Lowest global available memory during the run", lambda r: f'{r["minimum_global_memavailable_bytes"]/2**30:.2f} GiB')]
+    lines = ["| Measured metric | " + " | ".join(LABELS.get(r["profile"], r["profile"]) for r in selected) + " |",
+             "|---|" + "---:|"*len(selected)]
+    lines += ["| " + label + " | " + " | ".join(value(r) for r in selected) + " |" for label, value in rows]
+    readme = ROOT / "README.md"
+    updated, count = re.subn(r"<!-- METRICS START -->.*?<!-- METRICS END -->",
+        "<!-- METRICS START -->\n\n" + "\n".join(lines) + "\n\n<!-- METRICS END -->", readme.read_text(), flags=re.S)
+    if count != 1:
+        raise RuntimeError("Expected one README metric block; refusing an ambiguous update")
+    readme.write_text(updated)
 
 
 def phases(runs, source_hash):
@@ -251,6 +292,7 @@ def main():
     overview(summary, runs, source_hash)
     phases(runs, source_hash)
     resources(summary, runs, source_hash)
+    readme_metrics(runs)
     provenance = {"source": "results/summary.json", "source_sha256": source_hash,
         "renderer": "scripts/render_docs.py", "renderer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "matplotlib_version": matplotlib.__version__,
@@ -258,11 +300,12 @@ def main():
         "notes": ["Observed measurements only; default invalid CUDA excluded from speed comparison",
             "HTTP requests within one server start per profile are correlated, not independent trials",
             "Phase timers shown separately without assuming additive timing",
+            "TTFT proxy is first nonempty streamed output, not exact first-token timing; steady decode and per-token latency were not measured",
             "SVG IDs and metadata are deterministic in the recorded local renderer; fonts/layout can vary across Matplotlib versions"],
         "figures": [name + suffix for name in ("results-overview", "phase-times", "placement-and-reads") for suffix in (".svg", ".png")]}
     (ROOT / "docs/assets/figures.json").write_text(json.dumps(provenance, indent=2) + "\n")
     build_index()
-    print("Rendered 3 charts as SVG and PNG; wrote chart provenance and file index.")
+    print("Rendered 3 charts as SVG and PNG; refreshed README metrics, chart provenance, and file index.")
 
 
 if __name__ == "__main__":

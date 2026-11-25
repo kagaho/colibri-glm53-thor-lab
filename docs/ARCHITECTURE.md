@@ -90,8 +90,8 @@ python3 -m venv .venv-docs
 ```
 
 The renderer reads `results/summary.json`, not the 195 GB weights or local raw
-logs. It creates three SVG and PNG charts, `docs/assets/figures.json`, and the
-linked file index. The manifest records the source SHA-256 and local renderer
+logs. It creates three SVG and PNG charts, refreshes the README metric table,
+and writes `docs/assets/figures.json` and the linked file index. The manifest records the source SHA-256 and local renderer
 version. Layout and font details can vary across Matplotlib versions; the
 data and metric definitions remain explicit.
 

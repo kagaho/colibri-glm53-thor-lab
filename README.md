@@ -11,16 +11,19 @@ and measures how long you wait for output when the model exceeds RAM.
 ## Benchmark results
 
 <!-- METRICS START -->
+
 | Measured metric | CPU | Conservative CUDA |
 |---|---:|---:|
 | **Completion throughput** | **0.415 tok/s** | **0.517 tok/s** |
 | **TTFT proxy — p50** | **44.47 s** | **28.94 s** |
 | TTFT proxy — observed range | 43.85–48.98 s | 28.22–41.96 s |
 | Full request duration — p50 | 153.09 s | 114.77 s |
+| Model/server startup | 37.06 s | 39.44 s |
 | Known-answer smoke checks | 2/2 passed | 2/2 passed |
 | Measured HTTP requests / reported completion tokens | 4 / 256 | 4 / 256 |
 | Storage reads during measured requests | 377.1 GB | 365.9 GB |
 | Lowest global available memory during the run | 75.55 GiB | 53.81 GiB |
+
 <!-- METRICS END -->
 
 **What this demonstrates:** the native checkpoint runs with CPU or conservative

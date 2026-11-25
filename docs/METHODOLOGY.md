@@ -59,6 +59,11 @@ decode tok/s. First nonempty streamed output is **not** guaranteed to be time to
 a visible answer or exactly one token. Missing usage is not reconstructed from
 words or characters. Failed requests remain in the dataset.
 
+The README calls first nonempty output a **TTFT proxy**. No exact token-event
+timestamps, time per output token (TPOT), inter-token latency, or steady-state
+decode rate were captured. Those metrics require another instrumented run;
+they cannot be recovered as exact measurements from the saved aggregates.
+
 ## Controls and quality
 
 The build must pass the GLM-specific CUDA suite on the actual GPU. Checkpoint
