@@ -1,0 +1,17 @@
+{
+  "captured_utc": "2026-11-25T08:35:24.235460+00:00",
+  "architecture": "aarch64",
+  "kernel": "6.8.12-1029-tegra",
+  "python": "3.12.3",
+  "logical_cpus_available": 14,
+  "memory_total_bytes": 131791646720,
+  "memory_available_bytes_at_capture": 123465437184,
+  "swap_total_bytes": 0,
+  "gpu": "NVIDIA Thor, 595.113, 11.0",
+  "nvme": "NAME    MODEL                        SIZE ROTA TRAN\nnvme0n1 WD PC SN5000S SDEPNSJ-1T00 953.9G    0 nvme",
+  "power_profile": "NV Power Mode: 120W\n1",
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2026 NVIDIA Corporation\nBuilt on Fri_May_08_10:52:52_AM_PDT_2026\nCuda compilation tools, release 13.2, V13.2.86\nBuild cuda_13.2.r13.2/compiler.37953736_0",
+  "jetson_linux": "# R39 (release), REVISION: 2.2, GCID: 48648412, BOARD: generic, EABI: aarch64, DATE: Fri Nov 13 07:17:33 AM UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+  "scope": "One unified CPU/GPU memory pool; operating point is not a generic Thor performance claim"
+}

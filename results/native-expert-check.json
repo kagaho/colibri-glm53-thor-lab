@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "model_revision": "fe1d408f252c9c53a0d688aa54e41d9bdfdfd510",
+  "numpy_version": "1.26.4",
+  "method": "Independent nibble/gs64 decode and NumPy matvec vs upstream C matvec; compare first five rows and full-output sum",
+  "scope": "Two actual expert projections; not a full-checkpoint oracle or a throughput benchmark",
+  "cases": [
+    {
+      "tensor": "model.language_model.layers.12.mlp.experts.130.down_proj.weight",
+      "projection": "down_proj",
+      "shard": "model-00006-of-00062.safetensors",
+      "shape": [
+        4096,
+        2048
+      ],
+      "packed_tensor_sha256": "b63d72ccd95694fff7e12c9cca97ecd3ab5337ba7863885c43fdf9f4f3a1d6fa",
+      "first_five_max_abs_error": 6.560789794773925e-07,
+      "first_five_tolerance": 0.00020305789470672608,
+      "output_sum_abs_error": 1.0663250215259268e-05,
+      "output_sum_tolerance": 0.15811434553039233,
+      "passed": true
+    },
+    {
+      "tensor": "model.language_model.layers.12.mlp.experts.130.gate_proj.weight",
+      "projection": "gate_proj",
+      "shard": "model-00006-of-00062.safetensors",
+      "shape": [
+        2048,
+        4096
+      ],
+      "packed_tensor_sha256": "f4f71e9ef6d44400c681d7d2bb4480bdeacaa54d8a58755b6abc7a63185028c6",
+      "first_five_max_abs_error": 1.3707377624072592e-06,
+      "first_five_tolerance": 0.00025400260448455814,
+      "output_sum_abs_error": 2.4387772239009564e-05,
+      "output_sum_tolerance": 0.11690127268396369,
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+make: Entering directory '<REPO>/vendor/colibri/c'
+gcc -O3 -mcpu=native -pthread -Wall -Wextra -Wno-unused-parameter -Wno-misleading-indentation -Wno-unused-function -DCOLI_CUDA -ffp-contract=off -c tests/cuda_glm53c_ref.c -o tests/cuda_glm53c_ref.o
+"/usr/local/cuda/bin/nvcc" -O3 -std=c++17 -ftz=false -arch=sm_110 -Xcompiler=-Wall,-Wextra -Xcompiler=-include,<REPO>/vendor/colibri/c/glibc_c23_math_compat.h backend_cuda.cu cuda_chain.cu tests/test_cuda_glm53c.cu  tests/cuda_glm53c_ref.o -o cuda_glm53c_test
+./cuda_glm53c_test
+[CUDA] device 0: NVIDIA Thor, 131.8 GB VRAM, sm_110, PCI 0000:01:00
+kda
+  ok   kda H 2 KD 64 K 4 xs 1: out 3.14e-05 state 1.33e-06 window 0.00e+00
+  ok   kda H 3 KD 128 K 4 xs 1: out 2.08e-05 state 3.26e-06 window 0.00e+00
+  ok   kda H 2 KD 128 K 4 xs 0.01: out 5.15e-05 state 8.80e-07 window 0.00e+00
+  ok   kda H 4 KD 64 K 3 xs 0.05: out 2.81e-05 state 3.49e-07 window 0.00e+00
+  ok   kda rows H 3 KD 128 S 21 flags 0: the row kernel's bits
+  ok   kda rows H 2 KD 64 S 8 flags 0: the row kernel's bits
+  ok   kda rows H 3 KD 128 S 19 flags 2: the row kernel's bits
+  ok   kda rows H 2 KD 64 S 30 flags 3: the row kernel's bits
+mla
+  ok   mla core H 3 K 64 R 0 S 3 pos 20 kv_start 0 list 0: err 2.16e-07
+  ok   mla core H 2 K 512 R 0 S 4 pos 300 kv_start 0 list 1: err 4.35e-07
+  ok   mla core H 4 K 512 R 64 S 2 pos 900 kv_start 100 list 1: err 4.38e-07
+  ok   mla core H 64 K 512 R 0 S 1 pos 2100 kv_start 0 list 1: err 9.98e-07
+  ok   mla core H 1 K 1000 R 32 S 5 pos 70 kv_start 7 list 0: err 3.42e-07
+  ok   mla rope style 0 in place 0: err 8.67e-07
+  ok   mla rope style 0 in place 1: err 8.67e-07
+  ok   mla rope style 1 in place 0: err 4.38e-07
+  ok   mla rope style 1 in place 1: err 4.38e-07
+  ok   mla layernorm bias 0: err 1.11e-06
+  ok   mla layernorm bias 1: err 1.35e-06
+  ok   hgemv float trans 0: err 1.48e-07
+  ok   hgemv float trans 1: err 1.05e-07
+kpool
+  ok   kpool S 3 pos 20 IH 4 ID 16 pool 2 topk 8 tail 1: the selection
+  ok   kpool keys pool 2 ID 16: err 5.96e-08
+  ok   kpool S 2 pos 9 IH 1 ID 16 pool 4 topk 8 tail 1: the selection
+  ok   kpool keys pool 4 ID 16: err 7.54e-08
+  ok   kpool S 4 pos 300 IH 4 ID 64 pool 4 topk 64 tail 1: the selection
+  ok   kpool keys pool 4 ID 64: err 1.51e-07
+  ok   kpool S 1 pos 2 IH 4 ID 16 pool 2 topk 4 tail 0: the selection
+  ok   kpool keys pool 2 ID 16: err 6.62e-08
+  ok   kpool S 2 pos 30 IH 16 ID 16 pool 2 topk 6 tail 1: the selection
+  ok   kpool keys pool 2 ID 16: err 1.19e-07
+  ok   kpool S 2 pos 1000 IH 4 ID 32 pool 4 topk 128 tail 1: the selection
+  ok   kpool keys pool 4 ID 32: err 1.82e-07
+  ok   kpool S 2 pos 5000 IH 32 ID 128 pool 4 topk 2048 tail 1: the selection
+  ok   kpool keys pool 4 ID 128: err 2.39e-07
+dsa
+  ok   dsa S 3 pos 6 IH 2 ID 16 topk 4: 3 rows' lists position for position
+  ok   dsa S 4 pos 2 IH 2 ID 16 topk 4: 2 rows' lists position for position
+  ok   dsa S 2 pos 3 IH 2 ID 16 topk 8 force: 2 rows' lists position for position
+  ok   dsa S 3 pos 300 IH 4 ID 64 topk 64: 3 rows' lists position for position
+  ok   dsa S 2 pos 2100 IH 32 ID 128 topk 2048: 2 rows' lists position for position
+  ok   dsa S 5 pos 4000 IH 32 ID 128 topk 2048: 5 rows' lists position for position
+  ok   dsa S 1 pos 9000 IH 32 ID 128 topk 2048: 1 rows' lists position for position
+  ok   dsa S 2 pos 30 IH 64 ID 64 topk 2048 force: 2 rows' lists position for position
+  ok   hgemv q8 H 4 n 32 I 192: the float kernel's bits
+  ok   hgemv q8 H 64 n 256 I 512: the float kernel's bits
+  ok   hgemv q8 H 3 n 20 I 64: the float kernel's bits
+PASS
+make: Leaving directory '<REPO>/vendor/colibri/c'

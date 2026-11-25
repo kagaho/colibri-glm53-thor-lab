@@ -1,0 +1,17 @@
+# Local model weights, source checkout, tools, and process state
+models/
+vendor/
+.venv/
+runtime/
+logs/
+__pycache__/
+*.pyc
+*.part
+# Local research and cleanup records contain host paths and container details
+*.pdf
+cleanup-*.json
+container-preservation-before.json
+docker-*-cleanup.log
+shockwave-glm53-research-*.txt
+# Publish only explicitly curated experiment results
+results/raw/

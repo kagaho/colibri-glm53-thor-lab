@@ -1,0 +1,17 @@
+{
+  "engine_repository": "https://github.com/JustVugg/colibri.git",
+  "engine_ref": "v2.2.0",
+  "engine_commit": "e479104ae01bdc40ce81e675299b1d230891b321",
+  "model_repository": "Justvugg/GLM-5.3-Flash-colibri-int4-g64",
+  "model_revision": "fe1d408f252c9c53a0d688aa54e41d9bdfdfd510",
+  "model_directory": "models/glm53-flash-int4-g64",
+  "cuda_arch": "sm_110",
+  "context": 8192,
+  "port": 8092,
+  "prefix_store_mib": 512,
+  "seed": 42,
+  "initial_expert_cache_gb": 32,
+  "initial_gpu_tier_gib": 16,
+  "minimum_available_memory_gib": 8,
+  "minimum_free_disk_gib": 50
+}
