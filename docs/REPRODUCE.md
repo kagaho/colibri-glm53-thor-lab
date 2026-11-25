@@ -81,8 +81,8 @@ tensor hashes and numerical errors. It does not mark the whole model ready.
 ## 5. Run the initial comparison
 
 ```bash
-python3 scripts/run_experiment.py --profile cuda-16-32 --max-tokens 64 --repeats 2 --quality
 python3 scripts/run_experiment.py --profile cpu-32 --max-tokens 64 --repeats 2 --quality
+python3 scripts/run_experiment.py --profile cuda-conservative-16-32 --max-tokens 64 --repeats 2 --quality
 python3 scripts/summarize.py
 ```
 
@@ -113,6 +113,10 @@ profiles, and updates `results/summary.json` and `docs/RESULTS.md`. Its wait is
 bounded at 24 hours; each HTTP smoke stage has a 40-minute cap, plus separate
 bounded quality requests. It stops on a stage failure and generates the partial
 report. It does not push or publish anything.
+
+The resumed default order is CPU then conservative CUDA. The original default
+CUDA run had non-finite logits; see [the diagnostic record](DIAGNOSTICS.md).
+Use `--profiles` to select an explicit list for a later campaign.
 
 ```bash
 python3 scripts/status.py

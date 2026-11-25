@@ -3,6 +3,7 @@ import importlib.util
 import json
 from pathlib import Path
 import struct
+import socket
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -20,6 +21,30 @@ def module(name):
 
 validator = module("validate_model")
 summarizer = module("summarize")
+runner = module("run_experiment")
+
+
+class PortPreflightTests(unittest.TestCase):
+    def test_rejects_live_listener(self):
+        with socket.socket() as server:
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind(("127.0.0.1", 0))
+            server.listen()
+            with self.assertRaises(OSError):
+                runner.check_port_available(server.getsockname()[1])
+
+    def test_accepts_recently_closed_server_port(self):
+        with socket.socket() as server:
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind(("127.0.0.1", 0))
+            port = server.getsockname()[1]
+            server.listen()
+            with socket.create_connection(("127.0.0.1", port)) as client:
+                conn, _ = server.accept()
+                with conn:
+                    conn.shutdown(socket.SHUT_WR)
+                    self.assertEqual(client.recv(1), b"")
+        runner.check_port_available(port)
 
 
 class NativeValidationTests(unittest.TestCase):
@@ -98,6 +123,18 @@ class NativeValidationTests(unittest.TestCase):
 
 
 class PublicSummaryTests(unittest.TestCase):
+    def test_protocol_success_with_nonfinite_logits_is_invalid_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            (folder / "server.log").write_text("[router] non-finite logits at layer 3\n")
+            row = {"status": "complete", "profile": "fixture", "profile_settings": {},
+                "cache_state": "uncontrolled", "io_mode": "buffered", "workload_sha256": "abc",
+                "http_report": {"summary": {"succeeded": 4}, "requests": []}}
+            result = summarizer.summarize_run(row, folder)
+            self.assertEqual(result["status"], "invalid_output")
+            self.assertTrue(result["numerical_failure_detected"])
+            self.assertEqual(result["http_summary"]["succeeded"], 4)
+
     def test_failure_is_retained_without_private_commands(self):
         with tempfile.TemporaryDirectory() as directory:
             row = {"status": "failed", "profile": "fixture", "error": "HTTP failed",

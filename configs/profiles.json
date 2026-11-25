@@ -1,5 +1,6 @@
 {
   "cpu-32": {"gpu": "none", "expert_cache_gb": 32, "gpu_tier_gib": 0},
   "cuda-16-32": {"gpu": "0", "expert_cache_gb": 32, "gpu_tier_gib": 16},
-  "cuda-32-32": {"gpu": "0", "expert_cache_gb": 32, "gpu_tier_gib": 32}
+  "cuda-32-32": {"gpu": "0", "expert_cache_gb": 32, "gpu_tier_gib": 32},
+  "cuda-conservative-16-32": {"gpu": "0", "expert_cache_gb": 32, "gpu_tier_gib": 16, "tensor_core_gemm": false}
 }

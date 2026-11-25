@@ -1,0 +1,40 @@
+{
+  "engine_commit": "e479104ae01bdc40ce81e675299b1d230891b321",
+  "model_revision": "fe1d408f252c9c53a0d688aa54e41d9bdfdfd510",
+  "hardware": "Jetson Thor sm_110, CUDA 13.2.86, driver 595.113",
+  "cases": [
+    {
+      "case": "cpu-bits4",
+      "logit_values": 2013440,
+      "nonfinite_logits": 0,
+      "decoded_continuation": "Paris. In French, Paris is spelled",
+      "nonfinite_router_warning": false
+    },
+    {
+      "case": "cuda-exact-bits4",
+      "logit_values": 2013440,
+      "nonfinite_logits": 0,
+      "decoded_continuation": "Paris. In French, Paris is spelled",
+      "nonfinite_router_warning": false
+    },
+    {
+      "case": "cuda-default-long",
+      "logit_values": 5265920,
+      "nonfinite_logits": 5265920,
+      "decoded_continuation": "!",
+      "nonfinite_router_warning": true
+    },
+    {
+      "case": "cuda-exact-long",
+      "logit_values": 5265920,
+      "nonfinite_logits": 0,
+      "decoded_continuation": "Lisbon",
+      "nonfinite_router_warning": false
+    }
+  ],
+  "short_prompt_cpu_cuda_max_absolute_logit_difference": 0.009899139404296875,
+  "short_prompt_max_cpu_absolute_logit": 21.77735137939453,
+  "finding": "Same 33-token raw prompt: default CUDA produced non-finite logits; disabling tensor-core GEMMs produced finite logits and Lisbon",
+  "workaround": "COLI_CUDA_TC_GEMM=0",
+  "limits": "One model/build/device and two prompts. This isolates a problematic execution path; the exact kernel defect is not identified. Diagnostics are not controlled throughput benchmarks."
+}

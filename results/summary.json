@@ -1,13 +1,216 @@
 {
-  "status": "pending",
+  "status": "measured",
   "campaign_error": null,
   "metric": "HTTP completion-token throughput includes prefill, queueing, and HTTP overhead; it is not steady decode tok/s",
   "limitations": [
     "One machine and two short synthetic prompts; not a model intelligence benchmark",
-    "Buffered I/O and an uncontrolled OS page cache; first process is not a verified cold SSD run",
+    "I/O policy is recorded per attempt; the initial native-default direct-I/O run was mislabeled in its original metadata and is corrected in the curated summary",
     "Initial profile order is CUDA then CPU; OS cache state and drift can confound comparisons",
     "CPU and GPU profiles differ in device expert capacity as well as compute; no isolated GPU-kernel speedup claim",
     "Quality checks are two strict known-answer smoke tests, not a general quality score"
   ],
-  "runs": []
+  "runs": [
+    {
+      "run_id": "20261125T091731Z-cuda-16-32",
+      "status": "invalid_output",
+      "profile": "cuda-16-32",
+      "error": "Non-finite router logits; repeated invalid output; performance is diagnostic only",
+      "profile_settings": {
+        "gpu": "0",
+        "expert_cache_gb": 32,
+        "gpu_tier_gib": 16
+      },
+      "cache_state": "fresh engine/LRU; OS page cache uncontrolled",
+      "io_mode": "Native direct-I/O default enabled (G53_DIRECT unset); effective fallback path not traced",
+      "workload_sha256": "ea6006d19590b631b0026637efb1fd7606eb54004c069313309f0843332aa116",
+      "startup_seconds": 34.692073856000206,
+      "measurement_read_bytes": 3969396736,
+      "measurement_rchar": 3967348508,
+      "minimum_global_memavailable_bytes": 100496351232,
+      "peak_process_group_rss_sum_bytes": 22733635584,
+      "rss_caution": "RSS sums may double-count shared pages; global MemAvailable is recorded separately",
+      "protected_containers_unchanged": true,
+      "cuda_routed_expert_execution_verified": true,
+      "quality_passed": 0,
+      "quality_total": 2,
+      "native_tier_cumulative_counters_at_http_stage": [
+        {
+          "device_experts_served": 14616,
+          "routed_experts": 32256,
+          "cpu_ram_hits": 17640,
+          "disk_loads": 280
+        },
+        {
+          "device_experts_served": 29232,
+          "routed_experts": 64512,
+          "cpu_ram_hits": 35560,
+          "disk_loads": 280
+        },
+        {
+          "device_experts_served": 43848,
+          "routed_experts": 96768,
+          "cpu_ram_hits": 53480,
+          "disk_loads": 280
+        },
+        {
+          "device_experts_served": 58464,
+          "routed_experts": 129024,
+          "cpu_ram_hits": 71400,
+          "disk_loads": 280
+        }
+      ],
+      "counter_scope": "Native engine cumulative expert counters through each HTTP turn; GPU and CPU-cache denominators differ",
+      "numerical_failure_detected": true,
+      "metadata_correction": "Original runner mislabeled the upstream default as buffered; pinned glm53.c defaults G53_DIRECT to 1",
+      "http_summary": {
+        "requests": 4,
+        "succeeded": 4,
+        "failed": 0,
+        "failure_rate": 0.0,
+        "wall_seconds": 291.59508440900026,
+        "successful_requests_per_second": 0.013717652367518913,
+        "successful_requests_with_usage": 4,
+        "reported_successful_completion_tokens": 256,
+        "successful_completion_tokens_per_second": 0.8779297515212104,
+        "successful_duration_seconds": {
+          "count": 4,
+          "mean": 72.89836613500029,
+          "p50": 71.7151083280005,
+          "p95": 76.3273980740014,
+          "p99": 76.3273980740014
+        },
+        "successful_first_output_seconds": {
+          "count": 4,
+          "mean": 5.434837884000444,
+          "p50": 4.277686224999343,
+          "p95": 8.91830341899913,
+          "p99": 8.91830341899913
+        },
+        "arrival_timing": null,
+        "latency_slo": null
+      },
+      "http_attempts": [
+        {
+          "index": 0,
+          "start_seconds": 0.0011810199976025615,
+          "success": true,
+          "http_status": 200,
+          "error": null,
+          "first_output_seconds": 8.91830341899913,
+          "completion_tokens": 64,
+          "finish_reason": "length",
+          "duration_seconds": 76.3273980740014
+        },
+        {
+          "index": 1,
+          "start_seconds": 76.32865795499674,
+          "success": true,
+          "http_status": 200,
+          "error": null,
+          "first_output_seconds": 4.279858994003007,
+          "completion_tokens": 64,
+          "finish_reason": "length",
+          "duration_seconds": 72.26919429400004
+        },
+        {
+          "index": 2,
+          "start_seconds": 148.5979123319994,
+          "success": true,
+          "http_status": 200,
+          "error": null,
+          "first_output_seconds": 4.277686224999343,
+          "completion_tokens": 64,
+          "finish_reason": "length",
+          "duration_seconds": 71.28176384399922
+        },
+        {
+          "index": 3,
+          "start_seconds": 219.8797235819984,
+          "success": true,
+          "http_status": 200,
+          "error": null,
+          "first_output_seconds": 4.263502898000297,
+          "completion_tokens": 64,
+          "finish_reason": "length",
+          "duration_seconds": 71.7151083280005
+        }
+      ],
+      "engine_profile": {
+        "seq": 4,
+        "turns": [
+          {
+            "wall_s": 76.292,
+            "prompt_tokens": 33,
+            "completion_tokens": 64,
+            "expert_disk_s": 1.447,
+            "expert_wait_s": 0.0,
+            "expert_matmul_s": 53.966,
+            "attention_s": 15.937,
+            "lm_head_s": 1.433,
+            "forwards": 64
+          },
+          {
+            "wall_s": 72.226,
+            "prompt_tokens": 33,
+            "completion_tokens": 64,
+            "expert_disk_s": 0.54,
+            "expert_wait_s": 0.0,
+            "expert_matmul_s": 54.069,
+            "attention_s": 15.962,
+            "lm_head_s": 1.409,
+            "forwards": 64
+          },
+          {
+            "wall_s": 71.235,
+            "prompt_tokens": 33,
+            "completion_tokens": 64,
+            "expert_disk_s": 0.535,
+            "expert_wait_s": 0.0,
+            "expert_matmul_s": 53.21,
+            "attention_s": 15.883,
+            "lm_head_s": 1.399,
+            "forwards": 64
+          },
+          {
+            "wall_s": 71.667,
+            "prompt_tokens": 33,
+            "completion_tokens": 64,
+            "expert_disk_s": 0.544,
+            "expert_wait_s": 0.0,
+            "expert_matmul_s": 53.609,
+            "attention_s": 15.901,
+            "lm_head_s": 1.404,
+            "forwards": 64
+          }
+        ]
+      }
+    },
+    {
+      "run_id": "20261125T154401Z-cpu-32",
+      "status": "starting",
+      "profile": "cpu-32",
+      "error": null,
+      "profile_settings": {
+        "gpu": "none",
+        "expert_cache_gb": 32,
+        "gpu_tier_gib": 0
+      },
+      "cache_state": "fresh engine/LRU; OS page cache uncontrolled",
+      "io_mode": "explicit buffered reads (G53_DIRECT=0); no global cache flush",
+      "workload_sha256": "ea6006d19590b631b0026637efb1fd7606eb54004c069313309f0843332aa116",
+      "startup_seconds": null,
+      "measurement_read_bytes": null,
+      "measurement_rchar": null,
+      "minimum_global_memavailable_bytes": null,
+      "peak_process_group_rss_sum_bytes": null,
+      "rss_caution": null,
+      "protected_containers_unchanged": null,
+      "cuda_routed_expert_execution_verified": false,
+      "quality_passed": null,
+      "quality_total": null,
+      "native_tier_cumulative_counters_at_http_stage": null,
+      "counter_scope": null,
+      "numerical_failure_detected": false
+    }
+  ]
 }

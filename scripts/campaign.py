@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Wait for verified weights, run a bounded native CPU/CUDA study, and summarize."""
 import datetime
+import argparse
 import fcntl
 import json
 import os
@@ -14,6 +15,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    choices = json.loads((ROOT / "configs/profiles.json").read_text())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profiles", nargs="+", choices=choices,
+                        default=["cpu-32", "cuda-conservative-16-32"])
+    args = parser.parse_args()
     lease = (ROOT / "runtime/campaign.lock").open("w")
     try:
         fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -53,9 +59,9 @@ def main():
             time.sleep(15)
         state("validating_checkpoint")
         subprocess.run([sys.executable, "scripts/validate_model.py"], cwd=ROOT, check=True)
-        # CUDA first establishes real GPU activity. Then CPU uses identical dense
-        # precision, context, RAM cache, workload and generation settings.
-        for profile in ("cuda-16-32", "cpu-32"):
+        # Validate CPU output before the conservative CUDA follow-up. The first
+        # historical default-CUDA attempt remains in the raw result set.
+        for profile in args.profiles:
             state("benchmarking", profile=profile)
             runner = subprocess.Popen([sys.executable, "scripts/run_experiment.py", "--profile", profile,
                 "--max-tokens", "64", "--repeats", "2", "--quality"], cwd=ROOT)

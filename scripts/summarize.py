@@ -8,6 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def summarize_run(data, raw_dir):
+    log_path = raw_dir / "server.log"
+    nonfinite = data.get("numerical_failure_detected", False) or (
+        log_path.exists() and "[router] non-finite logits" in log_path.read_text(errors="replace"))
     summary = {
         "run_id": raw_dir.name, "status": data["status"], "profile": data["profile"],
         "error": data.get("error"), "profile_settings": data["profile_settings"],
@@ -24,7 +27,14 @@ def summarize_run(data, raw_dir):
         "quality_passed": data.get("quality_passed"), "quality_total": data.get("quality_total"),
         "native_tier_cumulative_counters_at_http_stage": data.get("native_tier_cumulative_counters_at_http_stage"),
         "counter_scope": data.get("counter_scope"),
+        "numerical_failure_detected": nonfinite,
     }
+    if nonfinite:
+        summary["status"] = "invalid_output"
+        summary["error"] = "Non-finite router logits; repeated invalid output; performance is diagnostic only"
+    if "G53_DIRECT" not in data.get("environment_overrides", {}) and data["profile"] != "fixture":
+        summary["io_mode"] = "Native direct-I/O default enabled (G53_DIRECT unset); effective fallback path not traced"
+        summary["metadata_correction"] = "Original runner mislabeled the upstream default as buffered; pinned glm53.c defaults G53_DIRECT to 1"
     http = data.get("http_report")
     path = raw_dir / "http.json"
     if not http and path.exists():
@@ -47,7 +57,7 @@ def main():
     result = {"status": status, "campaign_error": campaign.get("error"),
         "metric": "HTTP completion-token throughput includes prefill, queueing, and HTTP overhead; it is not steady decode tok/s",
         "limitations": ["One machine and two short synthetic prompts; not a model intelligence benchmark",
-            "Buffered I/O and an uncontrolled OS page cache; first process is not a verified cold SSD run",
+            "I/O policy is recorded per attempt; the initial native-default direct-I/O run was mislabeled in its original metadata and is corrected in the curated summary",
             "Initial profile order is CUDA then CPU; OS cache state and drift can confound comparisons",
             "CPU and GPU profiles differ in device expert capacity as well as compute; no isolated GPU-kernel speedup claim",
             "Quality checks are two strict known-answer smoke tests, not a general quality score"], "runs": runs}
@@ -58,13 +68,14 @@ def main():
         "| Run | Status | Profile | HTTP completion tok/s | First-output p50 (s) | Disk reads (GB) |", "|---|---|---|---:|---:|---:|"]
     for run in runs:
         h = run.get("http_summary") or {}
-        rate = h.get("successful_completion_tokens_per_second")
+        rate = h.get("successful_completion_tokens_per_second") if run["status"] == "complete" else None
         first = (h.get("successful_first_output_seconds") or {}).get("p50")
         read = run.get("measurement_read_bytes")
         def fmt(v):
             return "unavailable" if v is None else f"{v:.3f}"
         text.append(f"| {run['run_id']} | {run['status']} | {run['profile']} | {fmt(rate)} | {fmt(first)} | {fmt(None if read is None else read/1e9)} |")
-    text += ["", "HTTP throughput includes the whole measured batch. It must not be compared directly with steady-decode benchmarks.", "",
+    text += ["", "Invalid-output timings are excluded from the headline throughput column; raw diagnostic rates remain in JSON.", "",
+             "HTTP throughput includes the whole measured batch. It must not be compared directly with steady-decode benchmarks.", "",
              "See [summary.json](../results/summary.json) for per-attempt metrics, memory, integrity checks, and limitations.", "",
              "## Limits", ""] + ["- " + line for line in result["limitations"]]
     (ROOT / "docs/RESULTS.md").write_text("\n".join(text) + "\n")

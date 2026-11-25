@@ -9,7 +9,6 @@
   "context": 8192,
   "port": 8092,
   "prefix_store_mib": 512,
-  "seed": 42,
   "initial_expert_cache_gb": 32,
   "initial_gpu_tier_gib": 16,
   "minimum_available_memory_gib": 8,

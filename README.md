@@ -9,7 +9,7 @@ This is an experiment in running a model larger than RAM. It does not substitute
 a smaller GGUF for the native checkpoint, and it does not assume the outcome.
 
 <!-- STATUS START -->
-**Current status:** build and 46 GLM CUDA kernel checks passed. Full-model measurements are pending; see [results](docs/RESULTS.md).
+**Current status:** 2 full-model attempt(s) recorded, 0 completed. See [results](docs/RESULTS.md) for measurements and failures.
 <!-- STATUS END -->
 
 ## Study map
@@ -18,6 +18,8 @@ a smaller GGUF for the native checkpoint, and it does not assume the outcome.
 - [Reproduction guide](docs/REPRODUCE.md): exact setup and run commands.
 - [Benchmark protocol](docs/METHODOLOGY.md): controls, metrics, and limitations.
 - [Results](docs/RESULTS.md): generated table, including failed attempts.
+- [First full-model diagnostics](docs/DIAGNOSTICS.md): CUDA corruption, matched
+  CPU/CUDA controls, the conservative workaround, and runner corrections.
 - [Next experiments](docs/NEXT_EXPERIMENTS.md): how to extend the initial study.
 - [References](docs/REFERENCES.md): upstream documentation and first-person tests.
 
@@ -47,6 +49,7 @@ third-party requantization of Z.ai's weights, not an official int4 checkpoint.
 | `cpu-32` | CPU, same CUDA-capable executable with GPU disabled | 32 decimal GB | 0 |
 | `cuda-16-32` | CUDA | 32 decimal GB | 16 GiB |
 | `cuda-32-32` | CUDA, optional follow-up | 32 decimal GB | 32 GiB |
+| `cuda-conservative-16-32` | CUDA with tensor-core GEMMs disabled | 32 decimal GB | 16 GiB requested |
 
 Thor shares memory between CPU and GPU. Device allocations consume the same
 physical pool as the RAM expert cache. Explicit limits, a disabled extra host
@@ -70,8 +73,8 @@ bash scripts/setup.sh
 python3 scripts/capture_environment.py
 python3 scripts/download_model.py --workers 4
 python3 scripts/validate_model.py
-python3 scripts/run_experiment.py --profile cuda-16-32 --quality
 python3 scripts/run_experiment.py --profile cpu-32 --quality
+python3 scripts/run_experiment.py --profile cuda-conservative-16-32 --quality
 python3 scripts/summarize.py
 ```
 

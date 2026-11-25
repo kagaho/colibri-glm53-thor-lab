@@ -65,6 +65,14 @@ def owned_stop(proc):
             proc.wait(timeout=10)
 
 
+def check_port_available(port):
+    # Match HTTPServer's reuse policy for recently closed TIME_WAIT sockets.
+    # A live listener still rejects this bind; no process is displaced.
+    with socket.socket() as probe:
+        probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        probe.bind(("127.0.0.1", port))
+
+
 def container_snapshot():
     ids = subprocess.check_output(["docker", "ps", "-aq"], text=True).split()
     if not ids:
@@ -98,8 +106,7 @@ def main():
         raise RuntimeError("Engine changed after the recorded CUDA check")
     profile = profiles[args.profile]
     port = cfg["port"]
-    with socket.socket() as probe:
-        probe.bind(("127.0.0.1", port))
+    check_port_available(port)
     baseline = container_snapshot()
     if any(v["state"] == "running" for key, v in baseline.items()
            if key.startswith("65023526b31b")):
@@ -117,9 +124,11 @@ def main():
     settings = {"GLM53_BITS": "4", "GLM53_EXPERT_GB": str(profile["expert_cache_gb"]),
         "COLI_CUDA": "0" if profile["gpu"] == "none" else "1", "COLI_VULKAN": "0",
         "COLI_VK_TIER_GB": str(profile["gpu_tier_gib"]), "COLI_VK_TIER_HOST": "0",
-        "COLI_PREFIX_STORE": "0", "KVSAVE": "0", "USAGE_SAVE": "0", "SEED": str(cfg["seed"]),
+        "COLI_PREFIX_STORE": "0", "USAGE_SAVE": "0", "G53_DIRECT": "0",
         "COLI_USAGE": str(run / "fresh-usage"), "OMP_NUM_THREADS": "14",
-        "GLM53_VERBOSE": "1", "PROF": "1"}
+        "GLM53_VERBOSE": "1"}
+    if profile.get("tensor_core_gemm") is False:
+        settings["COLI_CUDA_TC_GEMM"] = "0"
     environment = {k: v for k, v in os.environ.items()
         if not k.startswith(("COLI_", "COLIBRI_", "GLM53_", "CUDA_", "OMP_"))
         and k not in ("RAM_GB", "CAP", "PIN", "PIN_GB", "SNAP", "SEED", "SERVE", "SERVE_BATCH",
@@ -128,11 +137,12 @@ def main():
     report = {"status": "starting", "profile": args.profile, "configuration": cfg,
         "profile_settings": profile, "command": command, "environment_overrides": settings,
         "model_validation": validation, "cache_state": "fresh engine/LRU; OS page cache uncontrolled",
-        "io_mode": "upstream default buffered reads; no global cache flush",
+        "io_mode": "explicit buffered reads (G53_DIRECT=0); no global cache flush",
         "workload_sha256": hashlib.sha256((ROOT / "workloads/smoke.jsonl").read_bytes()).hexdigest()}
     write_json(run / "run.json", report)
     stop_monitor = threading.Event()
     guard_triggered = threading.Event()
+    numerical_failure = threading.Event()
     proc = None
     minimum_available = [meminfo()["MemAvailable"]]
     peak_rss = [0]
@@ -159,6 +169,11 @@ def main():
                         out.write(json.dumps({"seconds": time.monotonic()-started,
                             "memory": memory, "process_group": process}) + "\n")
                         out.flush()
+                        log_path = run / "server.log"
+                        if "[router] non-finite logits" in log_path.read_text(errors="replace"):
+                            numerical_failure.set()
+                            os.killpg(proc.pid, signal.SIGTERM)
+                            return
                         low_count = low_count + 1 if memory["MemAvailable"] < cfg["minimum_available_memory_gib"]*2**30 else 0
                         if low_count >= 3:
                             guard_triggered.set()
@@ -234,6 +249,8 @@ def main():
                     write_json(run / "quality.json", quality)
                 report["quality_passed"] = sum(row["passed"] for row in quality)
                 report["quality_total"] = len(quality)
+                if report["quality_passed"] != report["quality_total"]:
+                    raise RuntimeError("Known-answer quality gate failed; timing data is retained for diagnosis")
             log_text = (run / "server.log").read_text(errors="replace")
             if profile["gpu"] != "none":
                 counts = re.findall(r"\[CUDA\] tier glm53 (?:run|turn): device (\d+) of (\d+)", log_text)
@@ -254,11 +271,14 @@ def main():
         after = container_snapshot()
         report["protected_containers_unchanged"] = all(after.get(k) == v for k, v in baseline.items())
         report["memory_guard_triggered"] = guard_triggered.is_set()
+        report["numerical_failure_detected"] = numerical_failure.is_set()
         report["minimum_global_memavailable_bytes"] = minimum_available[0]
         report["peak_process_group_rss_sum_bytes"] = peak_rss[0]
         report["rss_caution"] = "RSS sums may double-count shared pages; global MemAvailable is recorded separately"
-        if not report["protected_containers_unchanged"] or guard_triggered.is_set():
+        if not report["protected_containers_unchanged"] or guard_triggered.is_set() or numerical_failure.is_set():
             report["status"] = "failed"
+        if numerical_failure.is_set():
+            report["error"] = "Non-finite router logits: run stopped and excluded from usable-output performance"
         write_json(run / "run.json", report)
         write_json(ROOT / "runtime/last-run.json", {"run": str(run), "status": report["status"]})
         print(json.dumps({"run": str(run), "status": report["status"], "error": report.get("error")}, indent=2))

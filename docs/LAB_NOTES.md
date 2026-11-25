@@ -117,6 +117,12 @@ crossed midnight while the initial audit and setup were in progress.
 
 ## Observations still to be made
 
+The original campaign subsequently completed its CUDA requests but produced
+invalid output; its CPU stage stopped at a port preflight error. The full-model
+isolation tests, metadata corrections, runner fixes, and resumed campaign are
+recorded in [DIAGNOSTICS.md](DIAGNOSTICS.md). These findings supersede the
+earlier expectation that the initial campaign would run through uninterrupted.
+
 - Successful load and actual GPU execution with all native shards.
 - Per-request first output, completion throughput, phase times, disk reads,
   cache-hit behavior, and peak memory.

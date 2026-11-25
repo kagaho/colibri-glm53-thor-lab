@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "shards": 62,
+  "tensors": 75922,
+  "native_int4_expert_matrix_scale_pairs": 37152,
+  "model_repository": "Justvugg/GLM-5.3-Flash-colibri-int4-g64",
+  "model_revision": "fe1d408f252c9c53a0d688aa54e41d9bdfdfd510",
+  "checksum_basis": "Colibri downloader verified each file against pinned HF SHA-256 or Git blob ID",
+  "limitation": "Geometry and integrity checks do not establish model answer quality"
+}

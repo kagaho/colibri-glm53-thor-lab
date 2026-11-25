@@ -7,7 +7,7 @@ GLM-5.3-Flash int4 checkpoint, and what limits its latency and throughput?
 
 The initial study compares two whole configurations. CPU and CUDA share the
 same model, source revision, runtime dense precision, RAM expert-cache budget,
-context, concurrency, prompts, requested output cap, seed, reasoning setting,
+context, concurrency, prompts, requested output cap, reasoning setting,
 and thread count. CUDA adds an explicitly bounded device expert tier and a
 different compute path. Additional residency is part of that configuration.
 
@@ -72,8 +72,11 @@ establish native int4 quality relative to the original checkpoint.
 
 ## Storage interpretation
 
-The baseline uses Colibri's default buffered I/O. Do not call its first request
-a cold-SSD measurement: the download itself and earlier profiles can warm file
+The original run used native default `G53_DIRECT=1`, despite a mistaken buffered
+label in the first runner. Raw metadata is retained and the curated report
+explicitly corrects it. Subsequent runner invocations select buffered expert
+reads explicitly with `G53_DIRECT=0`. They are separate operating points.
+Do not call a first request a cold-SSD measurement: earlier work can warm file
 pages. No `drop_caches`, swap change, disk formatting, storage benchmark writes,
 or service interruption is part of this study. Concurrent user-service disk
 traffic remains a possible confound.
