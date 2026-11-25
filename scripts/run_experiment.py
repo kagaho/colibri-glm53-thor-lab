@@ -198,6 +198,9 @@ def main():
                     raise TimeoutError("Server startup deadline exceeded")
                 time.sleep(2)
             report["startup_seconds"] = time.monotonic() - started
+            from summarize import parse_device_tier
+            report["observed_device_expert_tier"] = parse_device_tier(
+                (run / "server.log").read_text(errors="replace"), profile["gpu_tier_gib"])
             write_json(run / "health.json", health)
             io_before = process_tree(proc.pid)
             bench = ["python3", str(ROOT / "vendor/colibri/c/tools/benchmark_http_serving.py"),

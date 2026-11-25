@@ -59,6 +59,11 @@ decode tok/s. First nonempty streamed output is **not** guaranteed to be time to
 a visible answer or exactly one token. Missing usage is not reconstructed from
 words or characters. Failed requests remain in the dataset.
 
+The README calls first nonempty output a **TTFT proxy**. No exact token-event
+timestamps, time per output token (TPOT), inter-token latency, or steady-state
+decode rate were captured. Those metrics require another instrumented run;
+they cannot be recovered as exact measurements from the saved aggregates.
+
 ## Controls and quality
 
 The build must pass the GLM-specific CUDA suite on the actual GPU. Checkpoint
@@ -70,6 +75,19 @@ including failures caused by formatting, truncated reasoning, or token limits.
 These controls do not constitute a broad capability evaluation. Kernel parity
 does not establish full-model numerical parity. Two smoke questions do not
 establish native int4 quality relative to the original checkpoint.
+
+## Reading the figures
+
+The [results charts](RESULTS.md) show throughput over the measured HTTP batch,
+per-request first-output observations, separate phase timers, startup device
+capacity, and physical read counters. Their different scopes matter: phase
+timers may overlap, startup capacity is not measured allocation, and read
+counters cover only the measured HTTP stage. No stacked time budget, confidence
+interval, or independent-trial count is inferred from these four requests.
+
+The [architecture diagrams](ARCHITECTURE.md) show the experiment and evidence
+flow. [Figure provenance](assets/figures.json) identifies the public data hash
+and renderer; the [file index](INDEX.md) links the underlying scripts and data.
 
 ## Storage interpretation
 

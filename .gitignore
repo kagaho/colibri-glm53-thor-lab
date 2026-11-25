@@ -2,6 +2,7 @@
 models/
 vendor/
 .venv/
+.venv-docs/
 runtime/
 logs/
 __pycache__/

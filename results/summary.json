@@ -61,6 +61,16 @@
       ],
       "counter_scope": "Native engine cumulative expert counters through each HTTP turn; GPU and CPU-cache denominators differ",
       "numerical_failure_detected": true,
+      "observed_device_expert_tier": {
+        "reported_budget": 1.54,
+        "reported_unit": "GiB",
+        "reported_budget_gib": 1.54,
+        "expert_capacity": 56,
+        "requested_budget_gib": 16,
+        "clamped_below_requested": true,
+        "evidence": "[CUDA] tier glm53: on, NVIDIA Thor, budget 1.54 GiB = 56 experts",
+        "scope": "Rounded startup tier budget and capacity, not measured steady-state allocated bytes"
+      },
       "metadata_correction": "Original runner mislabeled the upstream default as buffered; pinned glm53.c defaults G53_DIRECT to 1",
       "http_summary": {
         "requests": 4,
@@ -211,6 +221,7 @@
       "native_tier_cumulative_counters_at_http_stage": [],
       "counter_scope": "Native engine cumulative expert counters through each HTTP turn; GPU and CPU-cache denominators differ",
       "numerical_failure_detected": false,
+      "observed_device_expert_tier": null,
       "http_summary": {
         "requests": 4,
         "succeeded": 4,
@@ -386,6 +397,16 @@
       ],
       "counter_scope": "Native engine cumulative expert counters through each HTTP turn; GPU and CPU-cache denominators differ",
       "numerical_failure_detected": false,
+      "observed_device_expert_tier": {
+        "reported_budget": 16.0,
+        "reported_unit": "GiB",
+        "reported_budget_gib": 16.0,
+        "expert_capacity": 1088,
+        "requested_budget_gib": 16,
+        "clamped_below_requested": false,
+        "evidence": "[CUDA] tier glm53: on, NVIDIA Thor, budget 16.00 GiB = 1088 experts",
+        "scope": "Rounded startup tier budget and capacity, not measured steady-state allocated bytes"
+      },
       "http_summary": {
         "requests": 4,
         "succeeded": 4,

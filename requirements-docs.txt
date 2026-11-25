@@ -1,0 +1,3 @@
+# Optional: charts only. The inference/benchmark scripts use the standard library.
+# The exact renderer version for committed figures is recorded in figures.json.
+matplotlib>=3.6,<4

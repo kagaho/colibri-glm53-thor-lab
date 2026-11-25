@@ -1,26 +1,105 @@
 # GLM-5.3-Flash native int4 on Jetson Thor
 
-A reproducible study of Colibri's SSD-backed mixture-of-experts inference on a
-128 GB NVIDIA Jetson Thor. The question is whether a roughly **195 GB native
-checkpoint** can run usefully when only part of its experts fit in shared memory,
-and where the time goes: storage, expert computation, attention, or prompt processing.
+**A 195 GB native int4 checkpoint on one 128 GB NVIDIA Jetson Thor.**
+This study tests Colibri's SSD-backed expert streaming, compares CPU and CUDA,
+and measures how long you wait for output when the model exceeds RAM.
 
-This is an experiment in running a model larger than RAM. It does not substitute
-a smaller GGUF for the native checkpoint, and it does not assume the outcome.
+[Results](#benchmark-results) · [Run it](#run) · [How it works](docs/ARCHITECTURE.md) · [All files](docs/INDEX.md)
+
+![CPU versus conservative CUDA: completion tokens per second and TTFT proxy](docs/assets/results-overview.png)
+
+## Benchmark results
+
+<!-- METRICS START -->
+
+| Measured metric | CPU | Conservative CUDA |
+|---|---:|---:|
+| **Completion throughput** | **0.415 tok/s** | **0.517 tok/s** |
+| **TTFT proxy — p50** | **44.47 s** | **28.94 s** |
+| TTFT proxy — observed range | 43.85–48.98 s | 28.22–41.96 s |
+| Full request duration — p50 | 153.09 s | 114.77 s |
+| Model/server startup | 37.06 s | 39.44 s |
+| Known-answer smoke checks | 2/2 passed | 2/2 passed |
+| Measured HTTP requests / reported completion tokens | 4 / 256 | 4 / 256 |
+| Storage reads during measured requests | 377.1 GB | 365.9 GB |
+| Lowest global available memory during the run | 75.55 GiB | 53.81 GiB |
+
+<!-- METRICS END -->
+
+**What this demonstrates:** the native checkpoint runs with CPU or conservative
+CUDA at this operating point, and both pass the two known-answer checks. Output
+is slow: the valid CUDA configuration took about **29 seconds to first output**
+and delivered **0.517 completion tokens/s** over the measured batch.
+
+**Metric definitions:** throughput includes prefill and HTTP overhead.
+**TTFT proxy** means time to the first nonempty streamed output, which can be
+reasoning content; the benchmark does not record exact first-token timing,
+per-token latency, or steady-state decode speed. Four requests within one server
+start per configuration are correlated observations. Conservative CUDA uses
+`COLI_CUDA_TC_GEMM=0`. The default CUDA attempt produced non-finite logits and
+is excluded from the useful-output comparison.
+
+[Full results and failed attempts](docs/RESULTS.md) · [Metric definitions and controls](docs/METHODOLOGY.md) · [Machine-readable measurements](results/summary.json)
+
+## Where the time goes
+
+![CPU and conservative CUDA engine-reported expert disk, expert compute, attention, and output-head timers](docs/assets/phase-times.png)
+
+The expert-compute timer is the largest displayed counter in both valid
+configurations. Conservative CUDA reports lower expert-compute and attention
+times, while its expert-disk timer is higher. These phase timers can overlap;
+their sum is not a wall-time breakdown.
+[Phase interpretation and limitations](docs/RESULTS.md#reported-phase-times).
+
+## What SSD streaming and memory placement look like
+
+![Requested versus reported CUDA expert-tier capacity and storage reads for the measured requests](docs/assets/placement-and-reads.png)
+
+The failed CUDA attempt requested a 16 GiB expert tier but reported **1.54 GiB**;
+the valid conservative attempt reported **16.00 GiB**. CPU and GPU allocations
+share Thor's physical memory. The roughly **366–377 GB read per measured batch**
+includes repeated reads of the 195 GB checkpoint.
+[Memory and I/O interpretation](docs/RESULTS.md#placement-and-storage-reads) · [Architecture diagram](docs/ARCHITECTURE.md).
 
 <!-- STATUS START -->
 **Current status:** 3 full-model attempt(s) recorded, 2 completed. See [results](docs/RESULTS.md) for measurements and failures.
 <!-- STATUS END -->
 
+## What you can get from this repository
+
+| You want to… | Start here | Evidence or tool |
+|---|---|---|
+| Run a 195 GB native checkpoint on a 128 GB-class machine | [Reproduce the study](docs/REPRODUCE.md) | Pinned revisions, verified download, and explicit resource budgets |
+| Understand the CPU/GPU/SSD arrangement | [Architecture](docs/ARCHITECTURE.md) | Shared-memory and measurement-flow diagrams |
+| See the measured behavior and its limits | [Results](docs/RESULTS.md) | Charts, exact HTTP attempts, quality checks, and phase/I/O counters |
+| Diagnose incorrect output before trusting speed | [Diagnostics](docs/DIAGNOSTICS.md) | Matched default/conservative CUDA probes and recorded fixes |
+| Try questions or extend the benchmark | [Interactive chat](docs/INTERACTIVE.md) · [Next experiments](docs/NEXT_EXPERIMENTS.md) | Scripts, prompts, regression tests, and follow-up controls |
+| Find a specific file or deeper detail | [Complete file index](docs/INDEX.md) | Every public tracked file linked with its purpose |
+
+```mermaid
+flowchart LR
+    inputs["Pin engine and native weights"] --> build["Build and validate"]
+    build --> run["Run requests and collect telemetry"]
+    run --> gate{"Finite output and smoke checks?"}
+    gate -->|Pass| results["Interpret measured results"]
+    gate -->|Fail| diagnostics["Keep failure and isolate workaround"]
+    results --> extend["Reproduce or extend the study"]
+    diagnostics --> extend
+```
+
 ## Study map
 
 - [Step-by-step lab notebook](docs/LAB_NOTES.md): actions, observations, and decisions.
+- [Architecture and evidence flow](docs/ARCHITECTURE.md): how weights, requests, and measurements move.
+- [Complete linked file index](docs/INDEX.md): descriptions and links for every public file.
 - [Try it yourself](docs/INTERACTIVE.md): interactive terminal chat and CPU/CUDA selection.
 - [Reproduction guide](docs/REPRODUCE.md): exact setup and run commands.
 - [Benchmark protocol](docs/METHODOLOGY.md): controls, metrics, and limitations.
 - [Results](docs/RESULTS.md): generated table, including failed attempts.
 - [First full-model diagnostics](docs/DIAGNOSTICS.md): CUDA corruption, matched
   CPU/CUDA controls, the conservative workaround, and runner corrections.
+- [Issues, fixes, and PR context](docs/ISSUES_AND_PRS.md): tracked findings,
+  reproduction evidence, implemented fixes, and related upstream work.
 - [Next experiments](docs/NEXT_EXPERIMENTS.md): how to extend the initial study.
 - [References](docs/REFERENCES.md): upstream documentation and first-person tests.
 
@@ -43,13 +122,7 @@ The native container keeps non-expert source weights in BF16; the engine's
 `GLM53_BITS` setting controls their runtime representation. The model is a
 third-party requantization of Z.ai's weights, not an official int4 checkpoint.
 
-## Initial comparison
-
-The completed short HTTP study measured **0.415 completion tok/s on CPU** and
-**0.517 with conservative CUDA**, including prefill and request overhead. Both
-passed the two known-answer smoke checks. The default CUDA path produced
-non-finite logits and is excluded from useful-output performance. This is one
-machine and a small workload, not a general performance ranking.
+## Experiment configurations
 
 | Profile | Backend | RAM expert-cache budget | Device expert-tier budget |
 |---|---|---:|---:|
@@ -83,12 +156,27 @@ python3 scripts/validate_model.py
 python3 scripts/run_experiment.py --profile cpu-32 --quality
 python3 scripts/run_experiment.py --profile cuda-conservative-16-32 --quality
 python3 scripts/summarize.py
+python3 scripts/render_docs.py  # optional Matplotlib dependency
 ```
 
 The model download is approximately 195 GB. It is resumable and verified against
 the pinned repository's checksums. Keep at least 50 GiB free after staging it.
 Use [the detailed guide](docs/REPRODUCE.md) to run the campaign unattended and
 inspect progress with `python3 scripts/status.py`.
+
+## Rebuild the documentation figures without downloading the model
+
+The committed charts can be regenerated on a machine with Python and Matplotlib;
+no GPU, model weights, or private logs are required:
+
+```bash
+python3 scripts/render_docs.py
+```
+
+For an isolated plotting environment, see [chart reproduction](docs/ARCHITECTURE.md#rebuild-the-charts-and-file-index).
+The [figure manifest](docs/assets/figures.json) records the input-data hash,
+renderer version, and exported SVG/PNG files. The inference scripts keep their
+standard-library dependency boundary.
 
 ## Repository boundaries
 

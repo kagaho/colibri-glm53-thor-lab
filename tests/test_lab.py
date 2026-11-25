@@ -22,6 +22,21 @@ def module(name):
 validator = module("validate_model")
 summarizer = module("summarize")
 runner = module("run_experiment")
+renderer = module("render_docs")
+
+
+class FigureQualityGateTests(unittest.TestCase):
+    def test_excludes_fast_protocol_success_when_output_is_invalid(self):
+        valid = {"status": "complete", "quality_passed": 2, "quality_total": 2}
+        invalid = dict(valid, numerical_failure_detected=True)
+        failed_quality = dict(valid, quality_passed=1)
+        failed_run = dict(valid, status="failed")
+        self.assertEqual(renderer.checked_runs({"runs": [invalid, failed_quality, failed_run, valid]}), [valid])
+
+    def test_does_not_treat_missing_or_empty_quality_checks_as_a_pass(self):
+        self.assertEqual(renderer.checked_runs({"runs": [
+            {"status": "complete"},
+            {"status": "complete", "quality_total": 0, "quality_passed": 0}]}), [])
 
 
 class PortPreflightTests(unittest.TestCase):
@@ -123,6 +138,22 @@ class NativeValidationTests(unittest.TestCase):
 
 
 class PublicSummaryTests(unittest.TestCase):
+    def test_reports_clamped_tier_from_observed_log(self):
+        text = "[CUDA] tier glm53: on, NVIDIA Thor, budget 1.54 GiB = 56 experts of 13.5 MiB"
+        result = summarizer.parse_device_tier(text, 16)
+        self.assertEqual(result["reported_budget_gib"], 1.54)
+        self.assertEqual(result["expert_capacity"], 56)
+        self.assertTrue(result["clamped_below_requested"])
+
+    def test_reports_full_requested_device_budget(self):
+        text = "[CUDA] tier glm53: on, NVIDIA Thor, budget 16.00 GiB = 1088 experts of 13.5 MiB"
+        result = summarizer.parse_device_tier(text, 16)
+        self.assertEqual(result["reported_budget_gib"], 16)
+        self.assertFalse(result["clamped_below_requested"])
+
+    def test_missing_placement_is_unknown(self):
+        self.assertIsNone(summarizer.parse_device_tier("CPU-only engine", 0))
+
     def test_protocol_success_with_nonfinite_logits_is_invalid_output(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)

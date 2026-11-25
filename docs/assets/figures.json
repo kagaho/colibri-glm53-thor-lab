@@ -1,0 +1,23 @@
+{
+  "source": "results/summary.json",
+  "source_sha256": "8d5d3f09914f5bb53f3e0bec03b0562a2e57cfe26a21d5dfaab159590e4f2590",
+  "renderer": "scripts/render_docs.py",
+  "renderer_sha256": "e33f65387b42835d411706c28e6b689657129b896d92398e25a67432278ff114",
+  "matplotlib_version": "3.6.3",
+  "performance_gate": "Complete run, finite output, and every strict smoke check passed",
+  "notes": [
+    "Observed measurements only; default invalid CUDA excluded from speed comparison",
+    "HTTP requests within one server start per profile are correlated, not independent trials",
+    "Phase timers shown separately without assuming additive timing",
+    "TTFT proxy is first nonempty streamed output, not exact first-token timing; steady decode and per-token latency were not measured",
+    "SVG IDs and metadata are deterministic in the recorded local renderer; fonts/layout can vary across Matplotlib versions"
+  ],
+  "figures": [
+    "results-overview.svg",
+    "results-overview.png",
+    "phase-times.svg",
+    "phase-times.png",
+    "placement-and-reads.svg",
+    "placement-and-reads.png"
+  ]
+}

@@ -4,6 +4,18 @@ Run commands from the repository root. The initial machine is a Jetson Thor
 with about 122 GiB usable unified memory and CUDA 13.2. A different machine is
 a new operating point and should have its own environment record.
 
+```mermaid
+flowchart LR
+    resources["Check RAM, disk and existing services"] --> build["Build pinned engine<br/>and pass CUDA checks"]
+    build --> download["Download pinned native model<br/>and verify checksums"]
+    download --> validate["Validate native geometry"]
+    validate --> run["Run CPU then conservative CUDA"]
+    run --> publish["Summarize evidence<br/>and render documentation"]
+```
+
+For reading the results and rebuilding charts only, no model download is
+needed: use [the documentation-only path](ARCHITECTURE.md#rebuild-the-charts-and-file-index).
+
 ## 1. Check resources and preserve existing services
 
 ```bash
@@ -84,6 +96,7 @@ tensor hashes and numerical errors. It does not mark the whole model ready.
 python3 scripts/run_experiment.py --profile cpu-32 --max-tokens 64 --repeats 2 --quality
 python3 scripts/run_experiment.py --profile cuda-conservative-16-32 --max-tokens 64 --repeats 2 --quality
 python3 scripts/summarize.py
+python3 scripts/render_docs.py
 ```
 
 Each command creates a fresh local server, waits for actual engine readiness,
