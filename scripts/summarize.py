@@ -7,6 +7,22 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def parse_device_tier(log, requested_gib=None):
+    """Read the engine's startup capacity; do not guess when telemetry is absent."""
+    match = re.search(r"^\[CUDA\] tier glm53: on, .*?, budget ([\d.]+) (GiB|MiB|GB|MB) = (\d+) experts", log, re.M)
+    if not match:
+        return None
+    value, unit, experts = match.groups()
+    factor = {"GiB": 2**30, "MiB": 2**20, "GB": 10**9, "MB": 10**6}[unit]
+    budget_gib = float(value)*factor/2**30
+    return {"reported_budget": float(value), "reported_unit": unit,
+        "reported_budget_gib": budget_gib, "expert_capacity": int(experts),
+        "requested_budget_gib": requested_gib,
+        "clamped_below_requested": None if requested_gib is None else budget_gib+0.02 < requested_gib,
+        "evidence": match.group(0),
+        "scope": "Rounded startup tier budget and capacity, not measured steady-state allocated bytes"}
+
+
 def summarize_run(data, raw_dir):
     log_path = raw_dir / "server.log"
     nonfinite = data.get("numerical_failure_detected", False) or (
@@ -32,6 +48,9 @@ def summarize_run(data, raw_dir):
     if nonfinite:
         summary["status"] = "invalid_output"
         summary["error"] = "Non-finite router logits; repeated invalid output; performance is diagnostic only"
+    requested = data["profile_settings"].get("gpu_tier_gib")
+    summary["observed_device_expert_tier"] = data.get("observed_device_expert_tier") or (
+        parse_device_tier(log_path.read_text(errors="replace"), requested) if log_path.exists() else None)
     if "G53_DIRECT" not in data.get("environment_overrides", {}) and data["profile"] != "fixture":
         summary["io_mode"] = "Native direct-I/O default enabled (G53_DIRECT unset); effective fallback path not traced"
         summary["metadata_correction"] = "Original runner mislabeled the upstream default as buffered; pinned glm53.c defaults G53_DIRECT to 1"
@@ -65,7 +84,7 @@ def main():
     text = ["# Results", "", "Full-model measurements are pending." if not runs else
         "These are initial measurements on one Thor. Failed attempts remain in the dataset.", "",
         "The build and GLM CUDA correctness evidence is in [build-validation.json](../results/build-validation.json).", "",
-        "| Run | Status | Profile | Smoke checks | HTTP completion tok/s | First-output p50 (s) | Disk reads (GB) |", "|---|---|---|---|---:|---:|---:|"]
+        "| Run | Status | Profile | Smoke checks | Reported device tier (GiB) | HTTP completion tok/s | First-output p50 (s) | Disk reads (GB) |", "|---|---|---|---|---:|---:|---:|---:|"]
     for run in runs:
         h = run.get("http_summary") or {}
         rate = h.get("successful_completion_tokens_per_second") if run["status"] == "complete" else None
@@ -74,7 +93,9 @@ def main():
         def fmt(v):
             return "unavailable" if v is None else f"{v:.3f}"
         quality = (f"{run['quality_passed']}/{run['quality_total']}" if run.get('quality_total') is not None else "not run")
-        text.append(f"| {run['run_id']} | {run['status']} | {run['profile']} | {quality} | {fmt(rate)} | {fmt(first)} | {fmt(None if read is None else read/1e9)} |")
+        observed = run.get("observed_device_expert_tier") or {}
+        placement = fmt(observed.get("reported_budget_gib")) if observed else "not applicable" if run['profile_settings'].get('gpu') == 'none' else "unavailable"
+        text.append(f"| {run['run_id']} | {run['status']} | {run['profile']} | {quality} | {placement} | {fmt(rate)} | {fmt(first)} | {fmt(None if read is None else read/1e9)} |")
     text += ["", "Invalid-output timings are excluded from the headline throughput column; raw diagnostic rates remain in JSON.", "",
              "HTTP throughput includes the whole measured batch. It must not be compared directly with steady-decode benchmarks.", "",
              "See [summary.json](../results/summary.json) for per-attempt metrics, memory, integrity checks, and limitations.", "",

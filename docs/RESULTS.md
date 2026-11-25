@@ -4,11 +4,11 @@ These are initial measurements on one Thor. Failed attempts remain in the datase
 
 The build and GLM CUDA correctness evidence is in [build-validation.json](../results/build-validation.json).
 
-| Run | Status | Profile | Smoke checks | HTTP completion tok/s | First-output p50 (s) | Disk reads (GB) |
-|---|---|---|---|---:|---:|---:|
-| 20261125T091731Z-cuda-16-32 | invalid_output | cuda-16-32 | 0/2 | unavailable | 4.278 | 3.969 |
-| 20261125T154401Z-cpu-32 | complete | cpu-32 | 2/2 | 0.415 | 44.472 | 377.064 |
-| 20261125T155700Z-cuda-conservative-16-32 | complete | cuda-conservative-16-32 | 2/2 | 0.517 | 28.940 | 365.875 |
+| Run | Status | Profile | Smoke checks | Reported device tier (GiB) | HTTP completion tok/s | First-output p50 (s) | Disk reads (GB) |
+|---|---|---|---|---:|---:|---:|---:|
+| 20261125T091731Z-cuda-16-32 | invalid_output | cuda-16-32 | 0/2 | 1.540 | unavailable | 4.278 | 3.969 |
+| 20261125T154401Z-cpu-32 | complete | cpu-32 | 2/2 | not applicable | 0.415 | 44.472 | 377.064 |
+| 20261125T155700Z-cuda-conservative-16-32 | complete | cuda-conservative-16-32 | 2/2 | 16.000 | 0.517 | 28.940 | 365.875 |
 
 Invalid-output timings are excluded from the headline throughput column; raw diagnostic rates remain in JSON.
 

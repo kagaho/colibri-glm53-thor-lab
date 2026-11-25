@@ -123,6 +123,22 @@ class NativeValidationTests(unittest.TestCase):
 
 
 class PublicSummaryTests(unittest.TestCase):
+    def test_reports_clamped_tier_from_observed_log(self):
+        text = "[CUDA] tier glm53: on, NVIDIA Thor, budget 1.54 GiB = 56 experts of 13.5 MiB"
+        result = summarizer.parse_device_tier(text, 16)
+        self.assertEqual(result["reported_budget_gib"], 1.54)
+        self.assertEqual(result["expert_capacity"], 56)
+        self.assertTrue(result["clamped_below_requested"])
+
+    def test_reports_full_requested_device_budget(self):
+        text = "[CUDA] tier glm53: on, NVIDIA Thor, budget 16.00 GiB = 1088 experts of 13.5 MiB"
+        result = summarizer.parse_device_tier(text, 16)
+        self.assertEqual(result["reported_budget_gib"], 16)
+        self.assertFalse(result["clamped_below_requested"])
+
+    def test_missing_placement_is_unknown(self):
+        self.assertIsNone(summarizer.parse_device_tier("CPU-only engine", 0))
+
     def test_protocol_success_with_nonfinite_logits_is_invalid_output(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)

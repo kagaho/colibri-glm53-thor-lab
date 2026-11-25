@@ -21,6 +21,8 @@ a smaller GGUF for the native checkpoint, and it does not assume the outcome.
 - [Results](docs/RESULTS.md): generated table, including failed attempts.
 - [First full-model diagnostics](docs/DIAGNOSTICS.md): CUDA corruption, matched
   CPU/CUDA controls, the conservative workaround, and runner corrections.
+- [Issues, fixes, and PR context](docs/ISSUES_AND_PRS.md): tracked findings,
+  reproduction evidence, implemented fixes, and related upstream work.
 - [Next experiments](docs/NEXT_EXPERIMENTS.md): how to extend the initial study.
 - [References](docs/REFERENCES.md): upstream documentation and first-person tests.
 
