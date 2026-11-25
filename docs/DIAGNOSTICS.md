@@ -63,7 +63,8 @@ counts are in [numerical-diagnostics.json](../results/numerical-diagnostics.json
 
 ## Continued study
 
-The resumed campaign runs CPU first, then `cuda-conservative-16-32` with
-tensor-core GEMMs disabled. Source, weights, and native int4 format remain
-pinned. It records quality checks and actual execution diagnostics before any
-performance result is treated as usable. See the live generated results page.
+The resumed campaign completed CPU first, then `cuda-conservative-16-32` with
+tensor-core GEMMs disabled. Both passed 2/2 strict smoke checks; source, weights,
+and native int4 format remained pinned. See [results and charts](RESULTS.md),
+the [correctness-gate diagram](ARCHITECTURE.md#the-correctness-gate-matters),
+and the [complete file index](INDEX.md) to inspect the evidence.

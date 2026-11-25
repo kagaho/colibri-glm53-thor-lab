@@ -12,9 +12,40 @@ a smaller GGUF for the native checkpoint, and it does not assume the outcome.
 **Current status:** 3 full-model attempt(s) recorded, 2 completed. See [results](docs/RESULTS.md) for measurements and failures.
 <!-- STATUS END -->
 
+## What you can get from this repository
+
+| You want to… | Start here | Evidence or tool |
+|---|---|---|
+| Run a 195 GB native checkpoint on a 128 GB-class machine | [Reproduce the study](docs/REPRODUCE.md) | Pinned revisions, verified download, and explicit resource budgets |
+| Understand the CPU/GPU/SSD arrangement | [Architecture](docs/ARCHITECTURE.md) | Shared-memory and measurement-flow diagrams |
+| See the measured behavior and its limits | [Results](docs/RESULTS.md) | Charts, exact HTTP attempts, quality checks, and phase/I/O counters |
+| Diagnose incorrect output before trusting speed | [Diagnostics](docs/DIAGNOSTICS.md) | Matched default/conservative CUDA probes and recorded fixes |
+| Try questions or extend the benchmark | [Interactive chat](docs/INTERACTIVE.md) · [Next experiments](docs/NEXT_EXPERIMENTS.md) | Scripts, prompts, regression tests, and follow-up controls |
+| Find a specific file or deeper detail | [Complete file index](docs/INDEX.md) | Every public tracked file linked with its purpose |
+
+```mermaid
+flowchart LR
+    inputs["Pin engine and native weights"] --> build["Build and validate"]
+    build --> run["Run requests and collect telemetry"]
+    run --> gate{"Finite output and smoke checks?"}
+    gate -->|Pass| results["Interpret measured results"]
+    gate -->|Fail| diagnostics["Keep failure and isolate workaround"]
+    results --> extend["Reproduce or extend the study"]
+    diagnostics --> extend
+```
+
+![Measured throughput and first-output latency for quality-checked CPU and conservative-CUDA runs](docs/assets/results-overview.svg)
+
+The graph reports whole-batch HTTP completion throughput, not steady decode
+speed. Dots are four requests within one server start per configuration. The
+default CUDA failure is excluded from the performance comparison. Read the
+[metric definitions and limits](docs/METHODOLOGY.md) before comparing systems.
+
 ## Study map
 
 - [Step-by-step lab notebook](docs/LAB_NOTES.md): actions, observations, and decisions.
+- [Architecture and evidence flow](docs/ARCHITECTURE.md): how weights, requests, and measurements move.
+- [Complete linked file index](docs/INDEX.md): descriptions and links for every public file.
 - [Try it yourself](docs/INTERACTIVE.md): interactive terminal chat and CPU/CUDA selection.
 - [Reproduction guide](docs/REPRODUCE.md): exact setup and run commands.
 - [Benchmark protocol](docs/METHODOLOGY.md): controls, metrics, and limitations.
@@ -85,12 +116,27 @@ python3 scripts/validate_model.py
 python3 scripts/run_experiment.py --profile cpu-32 --quality
 python3 scripts/run_experiment.py --profile cuda-conservative-16-32 --quality
 python3 scripts/summarize.py
+python3 scripts/render_docs.py  # optional Matplotlib dependency
 ```
 
 The model download is approximately 195 GB. It is resumable and verified against
 the pinned repository's checksums. Keep at least 50 GiB free after staging it.
 Use [the detailed guide](docs/REPRODUCE.md) to run the campaign unattended and
 inspect progress with `python3 scripts/status.py`.
+
+## Rebuild the documentation figures without downloading the model
+
+The committed charts can be regenerated on a machine with Python and Matplotlib;
+no GPU, model weights, or private logs are required:
+
+```bash
+python3 scripts/render_docs.py
+```
+
+For an isolated plotting environment, see [chart reproduction](docs/ARCHITECTURE.md#rebuild-the-charts-and-file-index).
+The [figure manifest](docs/assets/figures.json) records the input-data hash,
+renderer version, and exported SVG/PNG files. The inference scripts keep their
+standard-library dependency boundary.
 
 ## Repository boundaries
 

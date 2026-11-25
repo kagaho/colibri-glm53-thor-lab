@@ -22,6 +22,21 @@ def module(name):
 validator = module("validate_model")
 summarizer = module("summarize")
 runner = module("run_experiment")
+renderer = module("render_docs")
+
+
+class FigureQualityGateTests(unittest.TestCase):
+    def test_excludes_fast_protocol_success_when_output_is_invalid(self):
+        valid = {"status": "complete", "quality_passed": 2, "quality_total": 2}
+        invalid = dict(valid, numerical_failure_detected=True)
+        failed_quality = dict(valid, quality_passed=1)
+        failed_run = dict(valid, status="failed")
+        self.assertEqual(renderer.checked_runs({"runs": [invalid, failed_quality, failed_run, valid]}), [valid])
+
+    def test_does_not_treat_missing_or_empty_quality_checks_as_a_pass(self):
+        self.assertEqual(renderer.checked_runs({"runs": [
+            {"status": "complete"},
+            {"status": "complete", "quality_total": 0, "quality_passed": 0}]}), [])
 
 
 class PortPreflightTests(unittest.TestCase):
