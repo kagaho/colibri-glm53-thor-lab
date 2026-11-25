@@ -9,12 +9,13 @@ This is an experiment in running a model larger than RAM. It does not substitute
 a smaller GGUF for the native checkpoint, and it does not assume the outcome.
 
 <!-- STATUS START -->
-**Current status:** 2 full-model attempt(s) recorded, 0 completed. See [results](docs/RESULTS.md) for measurements and failures.
+**Current status:** 3 full-model attempt(s) recorded, 2 completed. See [results](docs/RESULTS.md) for measurements and failures.
 <!-- STATUS END -->
 
 ## Study map
 
 - [Step-by-step lab notebook](docs/LAB_NOTES.md): actions, observations, and decisions.
+- [Try it yourself](docs/INTERACTIVE.md): interactive terminal chat and CPU/CUDA selection.
 - [Reproduction guide](docs/REPRODUCE.md): exact setup and run commands.
 - [Benchmark protocol](docs/METHODOLOGY.md): controls, metrics, and limitations.
 - [Results](docs/RESULTS.md): generated table, including failed attempts.
