@@ -1,0 +1,33 @@
+{
+  "recording": "results/rust-fibonacci.cast",
+  "recording_sha256": "2e605a2d9856ccc7cf103171232e5b813ed02d60a6a7d35262888dbf7c37cc16",
+  "gif": "docs/assets/rust-fibonacci-30s.gif",
+  "gif_sha256": "49331f336d5049f94cc2dd63a920dc5ee3f665b8b1fb4182984d505439feb46c",
+  "duration_ms": 30000,
+  "source_duration_seconds": 212.15180117699492,
+  "accelerated_playback_seconds": 27,
+  "final_hold_seconds": 3,
+  "acceleration_factor": 7.857474117666478,
+  "clock": "Elapsed source-session time, accelerated with playback; frozen during final hold",
+  "capture_scope": "One actual chat.py turn, from the ready prompt through completion statistics; model preload and exit excluded",
+  "renderer": "scripts/render_demo.py",
+  "renderer_sha256": "9dd992c07700f5b0c4bfc8f31b7bf1045bc9ffb317775ccc78694ee523d89714",
+  "terminal": {
+    "columns": 100,
+    "rows": 36
+  },
+  "pillow_version": "10.2.0",
+  "pyte_version": "0.8.2",
+  "appearance": "Terminal replay theme; very dark foreground grays lifted for contrast; I/O text unchanged",
+  "prompt": "Write only a concise Rust program: iterative fibonacci(n: u32) -> u64, F(0)=0 and F(1)=1, assume n<=92, and main printing fibonacci(10). No explanation.",
+  "command": "python3 scripts/chat.py --max-tokens 512",
+  "started_utc": "2026-11-26T04:28:02.964238+00:00",
+  "chat_statistics": "\u2514\u2500 81 tok \u00b7 212s \u00b7 0.38 tok/s",
+  "containers_unchanged": true,
+  "capture_script": "scripts/record_demo.py",
+  "capture_script_sha256": "2e57e392d9daf6389c5c2b991114a0c8b4e3704eab5f4ef2d2a8a596c47b6597",
+  "profile": "Native int4, conservative CUDA, COLI_CUDA_TC_GEMM=0; 32 GB RAM expert cache, 16 GiB CUDA expert tier; low reasoning",
+  "engine_commit": "e479104ae01bdc40ce81e675299b1d230891b321",
+  "model_repository": "Justvugg/GLM-5.3-Flash-colibri-int4-g64",
+  "model_revision": "fe1d408f252c9c53a0d688aa54e41d9bdfdfd510"
+}

@@ -1,0 +1,35 @@
+◆ colibri
+  ⠋ thinking… 0s[api] 127.0.0.1 - "POST /v1/chat/completions HTTP/1.1" 200 -
+  ⠸ thinking… 2s[CUDA] glm53 chain: 45 layers on the card (34 KDA, 11 MLA with the k-pooled indexer,
+ 3 dense), 4 streams, 15.4 MiB of parameters (COLI_CUDA_CHAIN=0: the CPU)
+  ⠴ thinking… 3s[CUDA] tier glm53 stream: a step of 57 rows; cold experts with 16 rows or more go to
+ the device (the GEMM's 16 rows: the upload and the CPU's rows not measured yet); layer 3: 18 reside
+nt, 0 streamed (0 of them copied from the host pool), 168 kept on the CPU (358 rows)
+  ╭─ rust
+  │ fn fibonacci(n: u32) -> u64 {
+  │     let (mut a, mut b) = (0u64, 1u64);
+  │     for _ in 0..n {
+  │         let t = a + b;
+  │         a = b;
+  │         b = t;
+  │     }
+  │     a
+  │ }
+  │
+  │ fn main() {
+  │     println!("{}", fibonacci(10));
+  │ }
+[CUDA] tier glm53 turn: device 9429 of 46368 routed experts (20.3%; this turn 9429 of 46368) | CPU R
+AM hits 11522, disk loads 15789 | resident 1088 (budget 1088, 15.19 GiB of 16.00 GiB, 62 blocks, fra
+g 0.22) | uploads 2263 (29.83 GiB, 1088 warm), evictions 1175, skipped 0 queue + 11048 rate, failed
+0 | device 3268.4 ms, CPU share 125283.9 ms, waited 299.1 ms (91% of device time hidden) | balance:
+device share 1.00, 0 rows handed to the CPU | exclusive: 1128 RAM copies of device experts given up
+first | stream: 42 steps, 90 cold experts (1.19 GiB, 8.20 GB/s) and 2038 rows streamed in 42 sub-bat
+ches, prefetched 0 (0 used), 5644 cold experts (15362 rows) kept on the CPU
+[CUDA] glm53: 552 dense matrices on the device (4.29 GiB), 0 left to the CPU; 82 calls, 82 rows
+[CUDA] glm53 chain: 82 forwards, 175563.6 ms of routed experts on the host
+  ╰─
+  └─ 81 tok · 212s · 0.38 tok/s
+
+  ╭────────────────────────────────────────────────────────────────────────────────────────────────╮
+  │ ›
