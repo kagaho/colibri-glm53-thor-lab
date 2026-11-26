@@ -15,3 +15,10 @@
 
 Measurements, additional observations, and the final promotion decision are
 recorded in [results](RESULTS.md) and `results/summary.json`.
+
+- First matched pair: 16 GiB 0.4762 tok/s and 30.54 s first-output p50;
+  32 GiB 0.5227 tok/s and 27.71 s. Both passed 2/2 checks. The initial gains
+  (+9.8% throughput, 9.3% latency reduction) were below the predeclared target;
+  all remaining pairs were retained in the plan.
+- The first 32 GiB start took 59.72 s versus 42.11 s for its control. Added a
+  startup-cost chart to expose this trade-off; the decision rule was unchanged.

@@ -139,6 +139,31 @@ def resources(runs,sha):
     fig.text(.06,.055,'Startup tier values are rounded capacities. Global available memory is shown instead of adding RSS, which can double-count shared pages.',fontsize=9,color='#526674')
     save(fig,'placement-and-memory',sha)
 
+def startup(runs,sha):
+    import matplotlib.pyplot as plt
+    fig,axes=plt.subplots(1,2,figsize=(12,5.6))
+    fig.subplots_adjust(left=.17,right=.96,top=.70,bottom=.25,wspace=.45)
+    heading(fig,'The cost of starting a larger tier','Fresh server starts; OS page-cache state remains uncontrolled')
+    names=[n for n in LABELS if any(r['profile']==n for r in runs)]
+    for y,name in enumerate(names):
+        selected=[r for r in runs if r['profile']==name]
+        load=[r['startup_seconds'] for r in selected]
+        combined=[r['startup_seconds']+r['http_attempts'][0]['first_output_seconds'] for r in selected]
+        for ax,values in zip(axes,(load,combined)):
+            value=statistics.median(values)
+            ax.barh(y,value,color=COLORS[name],height=.45,alpha=.8)
+            ax.scatter(values,[y+(i-(len(values)-1)/2)*.1 for i in range(len(values))],s=45,color=COLORS[name],edgecolor='white',zorder=3)
+            ax.text(value+max(values)*.025,y,f'{value:.1f}s',va='center',color=COLORS[name],weight='bold')
+    for ax in axes:
+        ax.set_yticks(range(len(names)),[LABELS[n] for n in names]);ax.invert_yaxis()
+        ax.xaxis.grid(True,color='#e7edf1');ax.set_axisbelow(True);ax.set_xlim(0,ax.get_xlim()[1]*1.16)
+        ax.set_xlabel('Median seconds across server starts')
+    axes[0].set_title('Model/server startup',loc='left',fontsize=12,pad=12)
+    axes[1].set_title('Startup + first-request output (approx.)',loc='left',fontsize=12,pad=12)
+    fig.text(.06,.12,'Right panel adds the matching startup and first-request first-output times per start; it excludes validation and harness gaps.',fontsize=9)
+    fig.text(.06,.065,'This is not a directly captured command-to-token measurement or a cold-SSD claim. A larger tier can load more slowly.',fontsize=9,color='#526674')
+    save(fig,'startup-cost',sha)
+
 def workflow(sha):
     import matplotlib.pyplot as plt
     from matplotlib.patches import FancyBboxPatch
@@ -188,12 +213,12 @@ def main():
     source=STUDY/'results/summary.json'; summary=json.loads(source.read_text()); sha=hashlib.sha256(source.read_bytes()).hexdigest()
     runs=good_runs(summary)
     if not runs: raise SystemExit('No completed quality-checked observations to plot')
-    performance(summary,runs,sha); paired(summary,sha); phases(runs,sha); resources(runs,sha); workflow(sha)
+    performance(summary,runs,sha); paired(summary,sha); phases(runs,sha); resources(runs,sha); startup(runs,sha); workflow(sha)
     manifest={'source':'results/summary.json','source_sha256':sha,'renderer':'scripts/render_results.py',
         'renderer_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'matplotlib_version':matplotlib.__version__,
-        'figures':[n+ext for n in ('performance','paired-gains','phases-and-io','placement-and-memory','study-workflow') for ext in ('.png','.svg')]}
+        'figures':[n+ext for n in ('performance','paired-gains','phases-and-io','placement-and-memory','startup-cost','study-workflow') for ext in ('.png','.svg')]}
     (STUDY/'assets/figures.json').write_text(json.dumps(manifest,indent=2)+'\n')
     index_files()
-    print('Rendered four tuning charts and study workflow; updated provenance and folder index.')
+    print('Rendered five tuning charts and study workflow; updated provenance and folder index.')
 
 if __name__=='__main__': main()

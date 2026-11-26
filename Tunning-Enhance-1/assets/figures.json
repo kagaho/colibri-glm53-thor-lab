@@ -1,0 +1,21 @@
+{
+  "source": "results/summary.json",
+  "source_sha256": "388a082dcdfac4d36716fe21a793cf74cec3b05dc44888a5bfedba3cdd54bb70",
+  "renderer": "scripts/render_results.py",
+  "renderer_sha256": "46888a500d704d2c3fb1c6354b7c78ca1cb83e06684715bb6ca02fff66bfcc25",
+  "matplotlib_version": "3.6.3",
+  "figures": [
+    "performance.png",
+    "performance.svg",
+    "paired-gains.png",
+    "paired-gains.svg",
+    "phases-and-io.png",
+    "phases-and-io.svg",
+    "placement-and-memory.png",
+    "placement-and-memory.svg",
+    "startup-cost.png",
+    "startup-cost.svg",
+    "study-workflow.png",
+    "study-workflow.svg"
+  ]
+}

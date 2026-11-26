@@ -19,8 +19,8 @@ def assess(pairs,complete,checks_ok,threshold=.20):
     throughput=[p['throughput_gain_fraction'] for p in pairs]
     latency=[p['ttft_reduction_fraction'] for p in pairs]
     t,l=statistics.median(throughput),statistics.median(latency)
-    gain=((t>=threshold and min(throughput)>0 and l>=-.05) or
-          (l>=threshold and min(latency)>0 and t>=-.05))
+    gain=((t>=threshold-1e-12 and min(throughput)>0 and l>=-.05) or
+          (l>=threshold-1e-12 and min(latency)>0 and t>=-.05))
     return {'promote':gain,'status':'considerable_repeatable_gain' if gain else 'threshold_not_met',
             'median_paired_throughput_gain_fraction':t,'median_paired_ttft_reduction_fraction':l,
             'throughput_gain_range':[min(throughput),max(throughput)],
@@ -59,7 +59,12 @@ def main():
             'throughput_gain_fraction':bh['successful_completion_tokens_per_second']/ah['successful_completion_tokens_per_second']-1,
             'ttft_reduction_fraction':1-bh['successful_first_output_seconds']['p50']/ah['successful_first_output_seconds']['p50']})
     complete=len(ordered)==len(plan['run_order']) and len(runs)==len(ordered)
+    expected_workload=hashlib.sha256((STUDY/'workloads/smoke.jsonl').read_bytes()).hexdigest()
+    expected_quality=hashlib.sha256((STUDY/'workloads/quality.json').read_bytes()).hexdigest()
+    expected_profiles=json.loads((STUDY/'configs/profiles.json').read_text())
     checks_ok=bool(runs) and all(r['status']=='complete' and not r['numerical_failure_detected'] and
+        r['workload_sha256']==expected_workload and r['quality_workload_sha256']==expected_quality and
+        r['profile_settings']==expected_profiles[r['profile']] and
         r.get('quality_total') and r['quality_passed']==r['quality_total'] and
         r['protected_containers_unchanged'] and not r['memory_guard_triggered'] and
         r['minimum_global_memavailable_bytes']>=8*2**30 and
@@ -85,6 +90,13 @@ def main():
                 'median_startup_plus_first_request_output_seconds':statistics.median(r['startup_seconds']+r['http_attempts'][0]['first_output_seconds'] for r in selected),
                 'server_first_output_p50_range':[min(first),max(first)],
                 'quality_passed':sum(r['quality_passed'] for r in selected),'quality_total':sum(r['quality_total'] for r in selected)}
+            shares=[]
+            for run in selected:
+                counters=run.get('native_tier_cumulative_counters_at_http_stage') or []
+                if counters and counters[-1]['routed_experts']:
+                    shares.append(counters[-1]['device_experts_served']/counters[-1]['routed_experts'])
+            if shares:
+                aggregate[name]['median_engine_device_served_share_at_http_end']=statistics.median(shares)
     result={'study':'Tunning-Enhance-1','status':'measured' if complete else 'partial','plan':plan,
         'metric':'Whole measured HTTP batch completion throughput including prefill/HTTP; TTFT proxy is first nonempty output',
         'validation_gates':gates,'measurement_checks_passed':checks_ok,'runs':runs,'pairs':pairs,
@@ -109,6 +121,8 @@ def main():
         '![Paired percentage improvements against the fixed threshold](assets/paired-gains.png)','',
         '![Separate phase timers and measured storage reads](assets/phases-and-io.png)','',
         '![Requested and reported placement plus available memory](assets/placement-and-memory.png)','',
+        '![Startup and approximate startup-plus-first-request cost](assets/startup-cost.png)','',
+        'The startup-plus-first-request panel adds matching per-start measurements and omits validation and harness gaps. It is not an exact command-to-token measurement. A throughput improvement can coexist with slower loading.','',
         '[Raw public metrics](results/summary.json) · [Method](METHODOLOGY.md) · [Reproduce](REPRODUCE.md) · [File index](INDEX.md)',
         '', '## Limits','']+['- '+text for text in result['limitations']]
     (STUDY/'RESULTS.md').write_text('\n'.join(lines)+'\n')
@@ -121,8 +135,20 @@ def main():
             headline.append(f"| {name} | {row['independent_server_starts']} | {row['median_batch_completion_tokens_per_second']:.3f} | {row['median_of_server_first_output_p50_seconds']:.2f} s | {row['quality_passed']}/{row['quality_total']} |")
         if 'median_paired_throughput_gain_fraction' in decision:
             headline+=['',f"**Paired median:** throughput {decision['median_paired_throughput_gain_fraction']:+.1%}; TTFT-proxy reduction {decision['median_paired_ttft_reduction_fraction']:+.1%}. These compare fresh 32 GiB trials with fresh 16 GiB trials, not the historical session."]
-        readme.write_text(re.sub(r'<!-- STUDY STATUS START -->.*?<!-- STUDY STATUS END -->',
-            '<!-- STUDY STATUS START -->\n\n'+'\n'.join(headline)+'\n\n<!-- STUDY STATUS END -->',readme.read_text(),flags=re.S))
+        if decision['status']=='threshold_not_met':
+            headline+=['','The completed measurements did not meet the predeclared considerable-gain target. The parent baseline remains unchanged; no performance-gain release is justified by this study.']
+        text=re.sub(r'<!-- STUDY STATUS START -->.*?<!-- STUDY STATUS END -->',
+            '<!-- STUDY STATUS START -->\n\n'+'\n'.join(headline)+'\n\n<!-- STUDY STATUS END -->',readme.read_text(),flags=re.S)
+        demo_path=STUDY/'results/rust-fibonacci-demo.json'
+        if demo_path.exists():
+            demo=json.loads(demo_path.read_text())
+            demo_text=['<!-- DEMO START -->','',
+                '![Real 32 GiB Rust Fibonacci session with an accelerated elapsed-time clock](assets/rust-fibonacci-30s.gif)','',
+                f"The same prompt and output cap as the original demo, using this study's `scripts/chat.py`: **{demo['source_duration_seconds']:.1f} real seconds at {demo['acceleration_factor']:.2f}×**, followed by a 3-second hold, for exactly 30 seconds. Model loading is excluded; this single demonstration is not the paired benchmark.",'',
+                '[Source/timing](results/rust-fibonacci-demo.json) · [Terminal output](results/rust-fibonacci-output.txt).','',
+                '<!-- DEMO END -->']
+            text=re.sub(r'<!-- DEMO START -->.*?<!-- DEMO END -->','\n'.join(demo_text),text,flags=re.S)
+        readme.write_text(text)
     print(json.dumps({'attempts':len(runs),'pairs':len(pairs),'decision':decision}))
 
 

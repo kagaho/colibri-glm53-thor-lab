@@ -16,6 +16,9 @@ class PromotionTests(unittest.TestCase):
     def test_repeatable_gain_with_valid_checks(self):
         pairs=self.pairs([.25,.24,.22],[.12,.08,.10])
         self.assertTrue(summary.assess(pairs,True,True)['promote'])
+    def test_exact_threshold_allows_float_ratio_roundoff(self):
+        pairs=self.pairs([1.2/1-1]*3,[.10]*3)
+        self.assertTrue(summary.assess(pairs,True,True)['promote'])
     def test_large_median_does_not_hide_a_reversed_pair(self):
         pairs=self.pairs([.50,-.01,.40],[0,0,0])
         self.assertFalse(summary.assess(pairs,True,True)['promote'])

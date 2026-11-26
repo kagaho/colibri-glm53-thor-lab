@@ -55,8 +55,8 @@ def main():
                     OMP_NUM_THREADS='14',USAGE_SAVE='0',COLI_PREFIX_STORE='0',COLI_USAGE=str(stem)+'.usage',DUMP=str(stem)+'.f32')
                 command=[str(ROOT/'vendor/colibri/c/glm53'),'--model',str(ROOT/cfg['model_directory']),
                     '--prompt',prompt,'--greedy','1']
-                with Path(str(stem)+'.log').open('w') as log:
-                    proc=subprocess.Popen(command,env=env,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+                with Path(str(stem)+'.log').open('w') as log, Path(str(stem)+'.stdout').open('w') as output:
+                    proc=subprocess.Popen(command,env=env,cwd=ROOT,stdout=output,stderr=log,start_new_session=True)
                     started=time.monotonic()
                     low=0
                     try:
@@ -70,8 +70,9 @@ def main():
                     finally:
                         owned_stop(proc)
                 values=np.fromfile(str(stem)+'.f32',dtype='<f4')
-                text=Path(str(stem)+'.log').read_text(errors='replace')
-                after=text.split('teacher_forcing',1)[1].split('\n',1)[1]
+                stdout=Path(str(stem)+'.stdout').read_text(errors='replace')
+                text=stdout+'\n'+Path(str(stem)+'.log').read_text(errors='replace')
+                after=stdout.split('teacher_forcing',1)[1].split('\n',1)[1]
                 continuation=after.split('[CUDA]',1)[0].split('\ndecode',1)[0].strip()
                 nonfinite=int((~np.isfinite(values)).sum())
                 tier=parse_device_tier(text,profile['gpu_tier_gib'])
