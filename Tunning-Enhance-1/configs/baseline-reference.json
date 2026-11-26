@@ -1,0 +1,5 @@
+{
+  "baseline_repository_commit": "f37f878",
+  "historical_summary_sha256": "8d5d3f09914f5bb53f3e0bec03b0562a2e57cfe26a21d5dfaab159590e4f2590",
+  "scope": "Historical context only. New paired 16 GiB trials are the denominator for the tuning gain."
+}

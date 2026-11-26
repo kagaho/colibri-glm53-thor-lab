@@ -1,0 +1,11 @@
+test_incomplete_pair_set_cannot_be_promoted (test_study.PromotionTests.test_incomplete_pair_set_cannot_be_promoted) ... ok
+test_large_gain_does_not_override_failed_quality_or_placement (test_study.PromotionTests.test_large_gain_does_not_override_failed_quality_or_placement) ... ok
+test_large_gain_does_not_override_material_latency_regression (test_study.PromotionTests.test_large_gain_does_not_override_material_latency_regression) ... ok
+test_large_median_does_not_hide_a_reversed_pair (test_study.PromotionTests.test_large_median_does_not_hide_a_reversed_pair) ... ok
+test_repeatable_gain_with_valid_checks (test_study.PromotionTests.test_repeatable_gain_with_valid_checks) ... ok
+test_study_directory_cannot_escape_the_repository (test_study.PromotionTests.test_study_directory_cannot_escape_the_repository) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.074s
+
+OK

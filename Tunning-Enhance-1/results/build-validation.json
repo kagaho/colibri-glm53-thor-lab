@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "engine_commit": "e479104ae01bdc40ce81e675299b1d230891b321",
+  "cuda_arch": "sm_110",
+  "binary_sha256": "250dd828712ea59acbfc975893f2d5d506e298793e5fb4a6c0e9850004777ed0",
+  "checked_utc": "2026-11-26T06:16:52.810980+00:00",
+  "successful_kernel_cases": 46,
+  "check_command": "make -C vendor/colibri/c cuda-glm53c-check CUDA=1 CUDA_ARCH=sm_110",
+  "build_command": "make -C vendor/colibri/c -j 4 glm53 CUDA=1 CUDA_ARCH=sm_110",
+  "cuda_toolkit": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2026 NVIDIA Corporation\nBuilt on Fri_May_08_10:52:52_AM_PDT_2026\nCuda compilation tools, release 13.2, V13.2.86\nBuild cuda_13.2.r13.2/compiler.37953736_0\n",
+  "cubin_inventory": "ELF file    1: glm53.1.sm_110.cubin\nELF file    2: glm53.2.sm_110.cubin\nELF file    3: glm53.3.sm_110.cubin\n",
+  "scope": "GLM CUDA layer kernels against independent CPU references; not a full-model quality benchmark"
+}

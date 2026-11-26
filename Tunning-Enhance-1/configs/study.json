@@ -1,0 +1,22 @@
+{
+  "baseline_profile": "cuda-conservative-16-32",
+  "candidate_profile": "cuda-conservative-32-32",
+  "independent_pairs": 3,
+  "run_order": [
+    "cpu-32",
+    "cuda-conservative-16-32",
+    "cuda-conservative-32-32",
+    "cuda-conservative-32-32",
+    "cuda-conservative-16-32",
+    "cuda-conservative-16-32",
+    "cuda-conservative-32-32"
+  ],
+  "http_repeats": 2,
+  "max_completion_tokens": 64,
+  "context": 8192,
+  "concurrency": 1,
+  "meaningful_gain_fraction": 0.2,
+  "promotion_rule": "At least 20% median paired throughput improvement or TTFT-proxy reduction, improvement in all three pairs for the winning metric, no more than 5% median regression in the other metric, all quality/placement/memory checks pass",
+  "comparison_scope": "Whole configuration; GPU expert tier only changes, UMA shared memory; CPU fresh reference is one start; OS cache uncontrolled, no forced eviction",
+  "demo": "Same Rust Fibonacci prompt, candidate 32 GiB tier, exactly 30s with accelerated source clock"
+}
