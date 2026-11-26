@@ -4,7 +4,7 @@
 This study tests Colibri's SSD-backed expert streaming, compares CPU and CUDA,
 and measures how long you wait for output when the model exceeds RAM.
 
-[Results](#benchmark-results) · [Run it](#run) · [How it works](docs/ARCHITECTURE.md) · [All files](docs/INDEX.md)
+[Results](#benchmark-results) · [30-second demo](#watch-glm-write-rust-in-30-seconds) · [Run it](#run) · [How it works](docs/ARCHITECTURE.md) · [All files](docs/INDEX.md)
 
 ![CPU versus conservative CUDA: completion tokens per second and TTFT proxy](docs/assets/results-overview.png)
 
@@ -40,6 +40,18 @@ start per configuration are correlated observations. Conservative CUDA uses
 is excluded from the useful-output comparison.
 
 [Full results and failed attempts](docs/RESULTS.md) · [Metric definitions and controls](docs/METHODOLOGY.md) · [Machine-readable measurements](results/summary.json)
+
+## Watch GLM write Rust in 30 seconds
+
+![Real accelerated terminal session: GLM-5.3-Flash writes an iterative Rust Fibonacci program, with elapsed source time at top right](docs/assets/rust-fibonacci-30s.gif)
+
+A real `python3 scripts/chat.py --max-tokens 512` session, asking the native
+int4 model for an iterative Rust Fibonacci program. Playback is **30 seconds**.
+The **212-second session plays at 7.86×** for 27 seconds, followed by a 3-second final hold.
+The **top-right clock shows actual elapsed session time** and the playback
+multiplier. The recording begins at the ready prompt after model loading.
+
+[Capture details and reproduction](docs/DEMO.md) · [Actual terminal output](results/rust-fibonacci-output.txt) · [Timing and provenance](results/rust-fibonacci-demo.json)
 
 ## Where the time goes
 

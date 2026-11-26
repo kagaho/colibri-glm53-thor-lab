@@ -2,7 +2,7 @@
   "source": "results/summary.json",
   "source_sha256": "8d5d3f09914f5bb53f3e0bec03b0562a2e57cfe26a21d5dfaab159590e4f2590",
   "renderer": "scripts/render_docs.py",
-  "renderer_sha256": "4f88961da8b928a792e1f9c8e603b8e23281997d8409c4c2252d64abeb700f6f",
+  "renderer_sha256": "ad36c2e27b274208e61794f2f0fd69b9efb9b6bcd4d40edaeca241d9d84717fc",
   "matplotlib_version": "3.6.3",
   "diagram_source": "scripts/render_docs.py",
   "performance_gate": "Complete run, finite output, and every strict smoke check passed",

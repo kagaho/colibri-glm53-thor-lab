@@ -1,5 +1,8 @@
 # Test the native model yourself
 
+Watch the [real 30-second Rust Fibonacci demo](DEMO.md) for an accelerated
+terminal recording, its source timing, and the scripts used to capture it.
+
 On Shockwave, run:
 
 ```bash
