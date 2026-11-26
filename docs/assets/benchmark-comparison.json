@@ -1,0 +1,68 @@
+{
+  "renderer": "scripts/render_comparison.py",
+  "renderer_sha256": "5b9e558738a6e946d31485584deb4ce95b6964c9297f9d51b03908e765d2701d",
+  "matplotlib_version": "3.6.3",
+  "sources": [
+    {
+      "path": "results/summary.json",
+      "sha256": "8d5d3f09914f5bb53f3e0bec03b0562a2e57cfe26a21d5dfaab159590e4f2590"
+    },
+    {
+      "path": "Tunning-Enhance-1/results/summary.json",
+      "sha256": "0e78be9268d29860899e10eecba615aba4435388b459c69f3dc8704ba81475cf"
+    }
+  ],
+  "figures": [
+    "benchmark-comparison.png",
+    "benchmark-comparison.svg"
+  ],
+  "rows": [
+    {
+      "group": "Original \u00b7 Nov 25 UTC",
+      "label": "CPU",
+      "starts": 1,
+      "throughput": 0.41476591003125685,
+      "first_output": 44.4718742230034,
+      "available": 75.54719161987305
+    },
+    {
+      "group": "Original \u00b7 Nov 25 UTC",
+      "label": "CUDA \u00b7 16 GiB",
+      "starts": 1,
+      "throughput": 0.5168081683310173,
+      "first_output": 28.940376176004065,
+      "available": 53.80755615234375
+    },
+    {
+      "group": "Follow-up \u00b7 Nov 26 UTC",
+      "label": "CPU",
+      "starts": 1,
+      "throughput": 0.37160603692830363,
+      "first_output": 46.507619822004926,
+      "available": 75.39679336547852
+    },
+    {
+      "group": "Follow-up \u00b7 Nov 26 UTC",
+      "label": "CUDA \u00b7 16 GiB",
+      "starts": 3,
+      "throughput": 0.48010023543967634,
+      "first_output": 30.317959848005557,
+      "available": 52.35811996459961
+    },
+    {
+      "group": "Follow-up \u00b7 Nov 26 UTC",
+      "label": "CUDA \u00b7 32 GiB",
+      "starts": 3,
+      "throughput": 0.5389571095761063,
+      "first_output": 27.661074642004678,
+      "available": 37.911685943603516
+    }
+  ],
+  "notes": [
+    "Historical and follow-up groups are not pooled or treated as paired trials.",
+    "CUDA throughput and latency follow-up bars are per-start medians; CPU has one follow-up start.",
+    "Latency is the median of server first-output p50 values, not exact first-token timing.",
+    "Available memory is the minimum across all starts, not an allocation or per-start median.",
+    "Only complete quality-checked profiles appear; default CUDA is invalid and excluded."
+  ]
+}

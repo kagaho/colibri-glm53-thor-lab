@@ -282,6 +282,8 @@ DESCRIPTIONS = {
     "workloads/quality.json": "Two strict known-answer smoke cases; not a broad capability benchmark.",
     "workloads/smoke.jsonl": "Exact versioned performance prompts for the HTTP study.",
     "scripts/setup.sh": "Clone pinned engine, build sm_110, run CUDA gate, and record binary identity.",
+    "scripts/render_comparison.py": "Rebuild the opening CPU/16/32 GiB chart from separate historical and follow-up public summaries.",
+    "docs/assets/benchmark-comparison.json": "Opening comparison chart: both source hashes, plotted values, scope notes, and renderer identity.",
     "docs/assets/figures.json": "Chart input hash, renderer version, interpretation notes, and asset inventory.",
 }
 
@@ -294,7 +296,8 @@ def file_description(path):
             return (ast.get_docstring(ast.parse((ROOT/path).read_text())) or 'Tuning study tool.').splitlines()[0].replace('|','/')
         return 'Isolated 16/32 GiB tuning study: '+path.split('/',1)[1]+'. See its own linked index for context.'
     if path.startswith("docs/assets/"):
-        label = {"results-overview": "Valid-run throughput and first-output latency",
+        label = {"benchmark-comparison": "Historical and follow-up CPU/16/32 GiB speed, latency, and memory comparison",
+                 "results-overview": "Valid-run throughput and first-output latency",
                  "phase-times": "Separate engine-reported phase timers",
                  "placement-and-reads": "Requested/reported tier capacity and physical read counters",
                  "study-workflow": "Compact study workflow with an opaque white background"}.get(Path(path).stem, "Generated figure")
