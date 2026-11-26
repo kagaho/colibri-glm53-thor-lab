@@ -1,0 +1,134 @@
+{
+  "status": "passed",
+  "cases": [
+    {
+      "prompt_kind": "short",
+      "prompt": "The capital of France is",
+      "expected": "Paris",
+      "profile": "cpu-32",
+      "logit_values": 929280,
+      "nonfinite_logits": 0,
+      "continuation": "Paris",
+      "observed_device_expert_tier": null,
+      "passed": true
+    },
+    {
+      "prompt_kind": "short",
+      "prompt": "The capital of France is",
+      "expected": "Paris",
+      "profile": "cuda-conservative-16-32",
+      "logit_values": 929280,
+      "nonfinite_logits": 0,
+      "continuation": "Paris",
+      "observed_device_expert_tier": {
+        "reported_budget": 16.0,
+        "reported_unit": "GiB",
+        "reported_budget_gib": 16.0,
+        "expert_capacity": 1088,
+        "requested_budget_gib": 16,
+        "clamped_below_requested": false,
+        "evidence": "[CUDA] tier glm53: on, NVIDIA Thor, budget 16.00 GiB = 1088 experts",
+        "scope": "Rounded startup tier budget and capacity, not measured steady-state allocated bytes"
+      },
+      "passed": true
+    },
+    {
+      "prompt_kind": "short",
+      "prompt": "The capital of France is",
+      "expected": "Paris",
+      "profile": "cuda-conservative-32-32",
+      "logit_values": 929280,
+      "nonfinite_logits": 0,
+      "continuation": "Paris",
+      "observed_device_expert_tier": {
+        "reported_budget": 32.0,
+        "reported_unit": "GiB",
+        "reported_budget_gib": 32.0,
+        "expert_capacity": 2240,
+        "requested_budget_gib": 32,
+        "clamped_below_requested": false,
+        "evidence": "[CUDA] tier glm53: on, NVIDIA Thor, budget 32.00 GiB = 2240 experts",
+        "scope": "Rounded startup tier budget and capacity, not measured steady-state allocated bytes"
+      },
+      "passed": true
+    },
+    {
+      "prompt_kind": "long",
+      "prompt": "The capital of France is Paris. The capital of Germany is Berlin. The capital of Italy is Rome. The capital of Spain is Madrid. The capital of Portugal is",
+      "expected": "Lisbon",
+      "profile": "cpu-32",
+      "logit_values": 5265920,
+      "nonfinite_logits": 0,
+      "continuation": "Lisbon",
+      "observed_device_expert_tier": null,
+      "passed": true
+    },
+    {
+      "prompt_kind": "long",
+      "prompt": "The capital of France is Paris. The capital of Germany is Berlin. The capital of Italy is Rome. The capital of Spain is Madrid. The capital of Portugal is",
+      "expected": "Lisbon",
+      "profile": "cuda-conservative-16-32",
+      "logit_values": 5265920,
+      "nonfinite_logits": 0,
+      "continuation": "Lisbon",
+      "observed_device_expert_tier": {
+        "reported_budget": 16.0,
+        "reported_unit": "GiB",
+        "reported_budget_gib": 16.0,
+        "expert_capacity": 1088,
+        "requested_budget_gib": 16,
+        "clamped_below_requested": false,
+        "evidence": "[CUDA] tier glm53: on, NVIDIA Thor, budget 16.00 GiB = 1088 experts",
+        "scope": "Rounded startup tier budget and capacity, not measured steady-state allocated bytes"
+      },
+      "passed": true
+    },
+    {
+      "prompt_kind": "long",
+      "prompt": "The capital of France is Paris. The capital of Germany is Berlin. The capital of Italy is Rome. The capital of Spain is Madrid. The capital of Portugal is",
+      "expected": "Lisbon",
+      "profile": "cuda-conservative-32-32",
+      "logit_values": 5265920,
+      "nonfinite_logits": 0,
+      "continuation": "Lisbon",
+      "observed_device_expert_tier": {
+        "reported_budget": 32.0,
+        "reported_unit": "GiB",
+        "reported_budget_gib": 32.0,
+        "expert_capacity": 2240,
+        "requested_budget_gib": 32,
+        "clamped_below_requested": false,
+        "evidence": "[CUDA] tier glm53: on, NVIDIA Thor, budget 32.00 GiB = 2240 experts",
+        "scope": "Rounded startup tier budget and capacity, not measured steady-state allocated bytes"
+      },
+      "passed": true
+    }
+  ],
+  "differences": [
+    {
+      "prompt_kind": "short",
+      "profile": "cuda-conservative-16-32",
+      "cpu_cuda_max_absolute_logit_difference": 0.010081768035888672
+    },
+    {
+      "prompt_kind": "short",
+      "profile": "cuda-conservative-32-32",
+      "cpu_cuda_max_absolute_logit_difference": 0.010165214538574219
+    },
+    {
+      "prompt_kind": "long",
+      "profile": "cuda-conservative-16-32",
+      "cpu_cuda_max_absolute_logit_difference": 0.010182857513427734
+    },
+    {
+      "prompt_kind": "long",
+      "profile": "cuda-conservative-32-32",
+      "cpu_cuda_max_absolute_logit_difference": 0.010216236114501953
+    }
+  ],
+  "engine_commit": "e479104ae01bdc40ce81e675299b1d230891b321",
+  "model_revision": "fe1d408f252c9c53a0d688aa54e41d9bdfdfd510",
+  "scope": "Two raw prompts and one greedy continuation per profile; finite logits plus known continuation, not full-model numeric equivalence",
+  "historical_negative_control": "Default tensor-core CUDA previously failed; not enabled in this tuning study",
+  "containers_unchanged": true
+}

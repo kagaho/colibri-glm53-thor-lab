@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Capture reproducibility facts without usernames, hostnames, tokens, or containers."""
 import datetime
+import argparse
 import json
 import os
 from pathlib import Path
@@ -18,6 +19,9 @@ def command(args):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output', type=Path, default=ROOT/'results/environment.json')
+    args = parser.parse_args()
     mem = {line.split()[0].rstrip(":"): int(line.split()[1])*1024
         for line in Path("/proc/meminfo").read_text().splitlines() if line.split()[-1:] == ["kB"]}
     data = {"captured_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -32,7 +36,8 @@ def main():
         "nvcc": command(["/usr/local/cuda/bin/nvcc", "--version"]),
         "jetson_linux": Path("/etc/nv_tegra_release").read_text().strip(),
         "scope": "One unified CPU/GPU memory pool; operating point is not a generic Thor performance claim"}
-    (ROOT / "results/environment.json").write_text(json.dumps(data, indent=2) + "\n")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(data, indent=2) + "\n")
     print(json.dumps(data, indent=2))
 
 

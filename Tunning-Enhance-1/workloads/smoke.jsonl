@@ -1,0 +1,2 @@
+{"messages":[{"role":"user","content":"Explain why an SSD is slower than RAM for mixture-of-experts inference. Use three short sentences."}]}
+{"messages":[{"role":"user","content":"Explain why a high expert-cache hit rate can improve local language-model inference. Use three short sentences."}]}

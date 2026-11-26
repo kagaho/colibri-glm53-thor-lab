@@ -84,16 +84,25 @@ def container_snapshot():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    profiles = json.loads((ROOT / "configs/profiles.json").read_text())
-    parser.add_argument("--profile", choices=profiles, default="cuda-16-32")
+    parser.add_argument("--study-dir", type=Path, help="Separate configs/workloads/results under this repository")
+    parser.add_argument("--profile", default="cuda-16-32")
     parser.add_argument("--max-tokens", type=int, default=64)
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--quality", action="store_true")
     parser.add_argument("--startup-timeout", type=int, default=900)
     args = parser.parse_args()
+    study = (ROOT / args.study_dir).resolve() if args.study_dir else ROOT
+    if not study.is_relative_to(ROOT):
+        parser.error("study-dir must stay within this repository")
+    profiles = json.loads((study / "configs/profiles.json").read_text())
+    if args.profile not in profiles:
+        parser.error("Unknown profile in the selected study")
     if not 1 <= args.max_tokens <= 256 or not 1 <= args.repeats <= 5:
         parser.error("Use max-tokens 1..256 and repeats 1..5 for this bounded experiment")
-    cfg = json.loads((ROOT / "configs/experiment.json").read_text())
+    cfg = json.loads((study / "configs/experiment.json").read_text())
+    original = json.loads((ROOT / "configs/experiment.json").read_text())
+    if any(cfg[key] != original[key] for key in ("engine_commit", "model_repository", "model_revision", "model_directory")):
+        raise RuntimeError("Study must use the validated pinned engine and model")
     sys.path.insert(0, str(ROOT / "scripts"))
     from validate_model import validate
     validation = validate()
@@ -114,7 +123,7 @@ def main():
     if meminfo()["MemAvailable"] < 80 * 2**30:
         raise RuntimeError("At least 80 GiB available RAM is required for this initial experiment")
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    run = ROOT / "results/raw" / f"{stamp}-{args.profile}"
+    run = study / "results/raw" / f"{stamp}-{args.profile}"
     run.mkdir(parents=True)
     command = ["python3", str(ROOT / "vendor/colibri/c/coli"), "serve",
         "--model", str(ROOT / cfg["model_directory"]), "--ctx", str(cfg["context"]),
@@ -138,7 +147,8 @@ def main():
         "profile_settings": profile, "command": command, "environment_overrides": settings,
         "model_validation": validation, "cache_state": "fresh engine/LRU; OS page cache uncontrolled",
         "io_mode": "explicit buffered reads (G53_DIRECT=0); no global cache flush",
-        "workload_sha256": hashlib.sha256((ROOT / "workloads/smoke.jsonl").read_bytes()).hexdigest()}
+        "workload_sha256": hashlib.sha256((study / "workloads/smoke.jsonl").read_bytes()).hexdigest(),
+        "quality_workload_sha256": hashlib.sha256((study / "workloads/quality.json").read_bytes()).hexdigest()}
     write_json(run / "run.json", report)
     stop_monitor = threading.Event()
     guard_triggered = threading.Event()
@@ -201,11 +211,15 @@ def main():
             from summarize import parse_device_tier
             report["observed_device_expert_tier"] = parse_device_tier(
                 (run / "server.log").read_text(errors="replace"), profile["gpu_tier_gib"])
+            if args.study_dir and profile['gpu'] != 'none':
+                tier = report['observed_device_expert_tier']
+                if not tier or tier['clamped_below_requested']:
+                    raise RuntimeError('Isolated study requires the requested GPU expert tier; missing/clamped startup telemetry')
             write_json(run / "health.json", health)
             io_before = process_tree(proc.pid)
             bench = ["python3", str(ROOT / "vendor/colibri/c/tools/benchmark_http_serving.py"),
                 "--base-url", base + "/v1", "--model", "glm53-flash-native-int4",
-                "--workload", str(ROOT / "workloads/smoke.jsonl"), "--concurrency", "1",
+                "--workload", str(study / "workloads/smoke.jsonl"), "--concurrency", "1",
                 "--repeats", str(args.repeats), "--max-tokens", str(args.max_tokens),
                 "--temperature", "0", "--timeout", "600", "--output", str(run / "http.json")]
             report["benchmark_command"] = bench
@@ -232,7 +246,7 @@ def main():
             report["http_report"] = json.loads((run / "http.json").read_text())
             if args.quality:
                 quality = []
-                for case in json.loads((ROOT / "workloads/quality.json").read_text()):
+                for case in json.loads((study / "workloads/quality.json").read_text()):
                     request = urllib.request.Request(base + "/v1/chat/completions",
                         data=json.dumps({"model": "glm53-flash-native-int4", "stream": False,
                             "temperature": 0, "max_tokens": 256,

@@ -16,3 +16,7 @@ docker-*-cleanup.log
 shockwave-glm53-research-*.txt
 # Publish only explicitly curated experiment results
 results/raw/
+# Isolated tuning attempts retain private process telemetry and full logs locally
+Tunning-Enhance-1/results/raw/
+Tunning-Enhance-1/runtime/
+Tunning-Enhance-1/logs/

@@ -25,7 +25,9 @@ def main():
     except OSError:
         print("Process is no longer running")
         return
-    if cwd != ROOT or marker not in args:
+    valid_marker = marker in args or (target == 'campaign' and any(name in args for name in
+        ('Tunning-Enhance-1/scripts/run_study.py', 'Tunning-Enhance-1/scripts/check_numerics.py')))
+    if cwd != ROOT or not valid_marker:
         raise SystemExit("Process identity does not match this workspace; no signal sent")
     if target == "server":
         if os.getpgid(pid) != pid:

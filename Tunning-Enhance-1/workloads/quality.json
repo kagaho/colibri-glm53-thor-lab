@@ -1,0 +1,4 @@
+[
+  {"id":"arithmetic","prompt":"What is 17 multiplied by 23? Answer with the integer only.","expected":"391"},
+  {"id":"sorting","prompt":"Sort these integers in ascending order: 9, -2, 4, 4, 0. Return only a JSON array.","expected_json":[-2,0,4,4,9]}
+]

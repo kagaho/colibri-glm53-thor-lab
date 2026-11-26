@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Record actual build identity only after the matching correctness log passes."""
 import datetime
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -10,11 +11,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--log', type=Path, default=ROOT/'logs/cuda-glm53c-check.log')
+    parser.add_argument('--output-dir', type=Path, default=ROOT/'results')
+    args = parser.parse_args()
     cfg = json.loads((ROOT / "configs/experiment.json").read_text())
     commit = subprocess.check_output(["git", "-C", str(ROOT / "vendor/colibri"), "rev-parse", "HEAD"], text=True).strip()
     if commit != cfg["engine_commit"]:
         raise RuntimeError("Unexpected engine revision")
-    log = (ROOT / "logs/cuda-glm53c-check.log").read_text()
+    log = args.log.read_text()
     if "\nPASS\n" not in log or "FAIL" in log:
         raise RuntimeError("The GLM-specific CUDA check did not pass")
     executable = ROOT / "vendor/colibri/c/glm53"
@@ -31,9 +36,10 @@ def main():
         "cubin_inventory": cubins,
         "scope": "GLM CUDA layer kernels against independent CPU references; not a full-model quality benchmark"}
     (ROOT / "runtime/cuda-check-passed.json").write_text(json.dumps(result, indent=2) + "\n")
-    (ROOT / "results/build-validation.json").write_text(json.dumps(result, indent=2) + "\n")
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    (args.output_dir / "build-validation.json").write_text(json.dumps(result, indent=2) + "\n")
     public_log = "\n".join(line.rstrip() for line in log.replace(str(ROOT), "<REPO>").splitlines()) + "\n"
-    (ROOT / "results/cuda-glm53c-check.txt").write_text(public_log)
+    (args.output_dir / "cuda-glm53c-check.txt").write_text(public_log)
     print(json.dumps({k: v for k, v in result.items() if k not in ("cuda_toolkit", "cubin_inventory")}, indent=2))
 
 

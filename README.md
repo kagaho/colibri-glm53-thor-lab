@@ -4,11 +4,13 @@
 This study tests Colibri's SSD-backed expert streaming, compares CPU and CUDA,
 and measures how long you wait for output when the model exceeds RAM.
 
-[Results](#benchmark-results) · [30-second demo](#watch-glm-write-rust-in-30-seconds) · [Run it](#run) · [How it works](docs/ARCHITECTURE.md) · [All files](docs/INDEX.md)
+[Results](#benchmark-results) · [Tuning history](#tuning-history) · [30-second demo](#watch-glm-write-rust-in-30-seconds) · [Run it](#run) · [How it works](docs/ARCHITECTURE.md) · [All files](docs/INDEX.md)
 
 ![CPU versus conservative CUDA: completion tokens per second and TTFT proxy](docs/assets/results-overview.png)
 
 ## Benchmark results
+
+**Original benchmark — 2026-11-25 UTC, one server start per configuration.**
 
 <!-- METRICS START -->
 
@@ -41,7 +43,60 @@ is excluded from the useful-output comparison.
 
 [Full results and failed attempts](docs/RESULTS.md) · [Metric definitions and controls](docs/METHODOLOGY.md) · [Machine-readable measurements](results/summary.json)
 
+<!-- TUNING ENHANCE 1 START -->
+
+## Tuning history
+
+Every experiment keeps its own inputs, results, charts, and real terminal recording. The original benchmark above is retained.
+
+| Study | Date (UTC) | Configuration and scope | Evidence |
+|---|---|---|---|
+| Original benchmark | 2026-11-25 | CPU and 16 GiB GPU tier, one server start each | [Original results](docs/RESULTS.md) |
+| Tunning-Enhance-1 | 2026-11-26 | GPU tier 16 → 32 GiB; RAM cache fixed at 32 GB; three matched pairs | [Complete study](Tunning-Enhance-1/README.md) |
+
+### Tunning-Enhance-1: larger GPU expert tier
+
+**32 GiB GPU expert tier: +9.8% paired median completion throughput; +9.3% reduction in first-output latency.**
+Below the predeclared 20% considerable-gain target; retained as a documented tuning result.
+
+Three fresh paired trials compare 16 versus 32 GiB on the same Thor, with the RAM expert cache held at 32 decimal GB and the conservative CUDA workaround retained.
+
+![Fresh repeated throughput and first-output comparison](Tunning-Enhance-1/assets/performance.png)
+
+| Measured metric | Historical 16 GiB | Fresh 16 GiB control | Fresh 32 GiB tuning |
+|---|---:|---:|---:|
+| **Batch completion throughput** | **0.517 tok/s** | **0.480 tok/s** | **0.539 tok/s** |
+| **Server TTFT-proxy p50** | **28.94 s** | **30.32 s** | **27.66 s** |
+| Server starts / HTTP requests | 1 / 4 | 3 / 12 | 3 / 12 |
+| Known-answer checks | 2/2 | 6/6 | 6/6 |
+| Model/server startup | 39.44 s | 42.06 s | 44.45 s |
+| Approx. startup + first-request output | 81.40 s | 84.42 s | 94.56 s |
+
+The fresh columns summarize three server starts; the historical column is one earlier start. The paired gain uses only the fresh 16/32 GiB runs, not the historical result. Both old and new datasets remain available.
+
+The startup-plus-first-request row adds matching timings and omits validation/harness gaps; it is not an exact command-to-token measurement. [Startup and memory trade-offs](Tunning-Enhance-1/RESULTS.md#memory-io-and-startup-trade-offs).
+
+Throughput includes prefill and HTTP overhead. TTFT is time to first nonempty streamed output, not exact first-token timing. The paired percentages and profile medians summarize different quantities; individual observations and the fixed promotion criterion are linked below. These are measurements on this machine/workload, not a general speedup guarantee.
+
+[Full tuning results](Tunning-Enhance-1/RESULTS.md) · [Paired gains and memory costs](Tunning-Enhance-1/README.md#repeatability-and-cost) · [Method](Tunning-Enhance-1/METHODOLOGY.md) · [All tuning files](Tunning-Enhance-1/INDEX.md)
+
+### New 30-second Rust demo
+
+![Real 32 GiB terminal session with accelerated source clock](Tunning-Enhance-1/assets/rust-fibonacci-30s.gif)
+
+The same Rust Fibonacci question, recorded with the 32 GiB configuration: **210.3 real seconds at 7.79×**, plus a three-second final hold, for exactly 30 seconds of playback. This single demo is separate from the paired benchmark. [Source and timing](Tunning-Enhance-1/results/rust-fibonacci-demo.json).
+
+Try the 32 GiB study configuration after the [normal model setup](docs/REPRODUCE.md):
+
+```bash
+python3 Tunning-Enhance-1/scripts/chat.py --max-tokens 512
+```
+
+<!-- TUNING ENHANCE 1 END -->
+
 ## Watch GLM write Rust in 30 seconds
+
+**Original 16 GiB recording — retained alongside the new 32 GiB demo above.**
 
 ![Real accelerated terminal session: GLM-5.3-Flash writes an iterative Rust Fibonacci program, with elapsed source time at top right](docs/assets/rust-fibonacci-30s.gif)
 
@@ -55,6 +110,8 @@ multiplier. The recording begins at the ready prompt after model loading.
 
 ## Where the time goes
 
+**Original benchmark phase measurements.** [Tunning-Enhance-1 phase comparison](Tunning-Enhance-1/assets/phases-and-io.png).
+
 ![CPU and conservative CUDA engine-reported expert disk, expert compute, attention, and output-head timers](docs/assets/phase-times.png)
 
 The expert-compute timer is the largest displayed counter in both valid
@@ -65,6 +122,8 @@ their sum is not a wall-time breakdown.
 
 ## What SSD streaming and memory placement look like
 
+**Original benchmark storage/placement measurements.** [Tunning-Enhance-1 memory and I/O costs](Tunning-Enhance-1/RESULTS.md#memory-io-and-startup-trade-offs).
+
 ![Requested versus reported CUDA expert-tier capacity and storage reads for the measured requests](docs/assets/placement-and-reads.png)
 
 The failed CUDA attempt requested a 16 GiB expert tier but reported **1.54 GiB**;
@@ -72,6 +131,8 @@ the valid conservative attempt reported **16.00 GiB**. CPU and GPU allocations
 share Thor's physical memory. The roughly **366–377 GB read per measured batch**
 includes repeated reads of the 195 GB checkpoint.
 [Memory and I/O interpretation](docs/RESULTS.md#placement-and-storage-reads) · [Architecture diagram](docs/ARCHITECTURE.md).
+
+The following status block covers the original benchmark dataset; tuning runs are listed separately above.
 
 <!-- STATUS START -->
 **Current status:** 3 full-model attempt(s) recorded, 2 completed. See [results](docs/RESULTS.md) for measurements and failures.

@@ -9,7 +9,7 @@ project on the user's behalf.
 | Default CUDA produces non-finite full-model logits | [#4](https://github.com/kagaho/colibri-glm53-thor-lab/issues/4) | Workaround validated: `COLI_CUDA_TC_GEMM=0`; kernel root cause remains open |
 | Port preflight rejects TIME_WAIT after an owned server closes | [#2](https://github.com/kagaho/colibri-glm53-thor-lab/issues/2) | Fixed with matching SO_REUSEADDR policy; live-listener and recently-closed-port regressions pass |
 | Initial I/O metadata mislabeled and protocol success confused with usable inference | [#3](https://github.com/kagaho/colibri-glm53-thor-lab/issues/3) | Historical correction, explicit `G53_DIRECT=0` for new runs, numeric/quality gates, and retained failed evidence |
-| Requested GPU tier differs from engine-reported capacity | [#1](https://github.com/kagaho/colibri-glm53-thor-lab/issues/1) | Follow-up PR records observed budget/capacity, retains the evidence, and backfills existing runs |
+| Requested GPU tier differs from engine-reported capacity | [#1](https://github.com/kagaho/colibri-glm53-thor-lab/issues/1) | Fixed by merged [PR #5](https://github.com/kagaho/colibri-glm53-thor-lab/pull/5): records observed budget/capacity and backfills existing runs |
 
 ## How the fixes were validated
 
@@ -28,6 +28,15 @@ The placement follow-up reads the actual startup line rather than assuming a
 56 expert slots; the valid conservative CUDA run reported 16.00 GiB and 1088
 slots. These are rounded startup capacities, not measured allocated bytes.
 Why the earlier budget was clamped remains a separate unresolved question.
+
+## Tuning studies
+
+[Tunning-Enhance-1](../Tunning-Enhance-1/RESULTS.md) repeats the validated
+conservative configuration with 16 and 32 GiB expert tiers. Three paired trials
+measured a 9.8% median throughput gain and 9.3% lower first-output latency,
+below the predeclared 20% target. The larger tier costs more shared memory and
+has startup/first-request trade-offs. Both benchmark generations and both real
+GIFs are retained; this is a measured configuration comparison, not a kernel fix.
 
 ## Related upstream PRs and issues
 

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="720pt" height="273.6pt" viewBox="0 0 720 273.6" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:description>Source: results/summary.json SHA256 0e78be9268d29860899e10eecba615aba4435388b459c69f3dc8704ba81475cf</dc:description>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Tunning-Enhance-1/scripts/render_results.py</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 273.6
+L 720 273.6
+L 720 0
+L 0 0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 45.504 79.5492
+L 218.304 79.5492
+Q 232.128 79.5492 232.128 74.3508
+L 232.128 30.1644
+Q 232.128 24.966 218.304 24.966
+L 45.504 24.966
+Q 31.68 24.966 31.68 30.1644
+L 31.68 74.3508
+Q 31.68 79.5492 45.504 79.5492
+z
+" clip-path="url(#p7d41fd2fbd)" style="fill: #edf2f8; stroke: #b8cad6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 287.424 79.5492
+L 460.224 79.5492
+Q 474.048 79.5492 474.048 74.3508
+L 474.048 30.1644
+Q 474.048 24.966 460.224 24.966
+L 287.424 24.966
+Q 273.6 24.966 273.6 30.1644
+L 273.6 74.3508
+Q 273.6 79.5492 287.424 79.5492
+z
+" clip-path="url(#p7d41fd2fbd)" style="fill: #edf2f8; stroke: #b8cad6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 508.608 79.5492
+L 681.408 79.5492
+Q 695.232 79.5492 695.232 74.3508
+L 695.232 30.1644
+Q 695.232 24.966 681.408 24.966
+L 508.608 24.966
+Q 494.784 24.966 494.784 30.1644
+L 494.784 74.3508
+Q 494.784 79.5492 508.608 79.5492
+z
+" clip-path="url(#p7d41fd2fbd)" style="fill: #edf2f8; stroke: #b8cad6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 235.584 170.5212
+L 512.064 170.5212
+Q 525.888 170.5212 525.888 165.3228
+L 525.888 121.1364
+Q 525.888 115.938 512.064 115.938
+L 235.584 115.938
+Q 221.76 115.938 221.76 121.1364
+L 221.76 165.3228
+Q 221.76 170.5212 235.584 170.5212
+z
+" clip-path="url(#p7d41fd2fbd)" style="fill: #fff4d9; stroke: #b8cad6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 42.048 258.894
+L 277.056 258.894
+Q 290.88 258.894 290.88 253.6956
+L 290.88 209.5092
+Q 290.88 204.3108 277.056 204.3108
+L 42.048 204.3108
+Q 28.224 204.3108 28.224 209.5092
+L 28.224 253.6956
+Q 28.224 258.894 42.048 258.894
+z
+" clip-path="url(#p7d41fd2fbd)" style="fill: #edf6f6; stroke: #b8cad6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 442.944 258.894
+L 677.952 258.894
+Q 691.776 258.894 691.776 253.6956
+L 691.776 209.5092
+Q 691.776 204.3108 677.952 204.3108
+L 442.944 204.3108
+Q 429.12 204.3108 429.12 209.5092
+L 429.12 253.6956
+Q 429.12 258.894 442.944 258.894
+z
+" clip-path="url(#p7d41fd2fbd)" style="fill: #fbeded; stroke: #b8cad6; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(67.120875 49.134116)">Repeat integrity, kernel</text>
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(71.667828 61.451709)">and numerical checks</text>
+   </g>
+   <g id="text_2">
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(323.032359 49.134116)">CPU reference + 3</text>
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(299.529313 61.451709)">alternating 16/32 GiB pairs</text>
+   </g>
+   <g id="text_3">
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(524.847766 49.134116)">Check quality, placement</text>
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(530.226594 61.451709)">and memory headroom</text>
+   </g>
+   <g id="patch_8">
+    <path d="M 230.671055 52.2576
+Q 251.135931 52.2576 269.923756 52.2576
+" style="fill: none; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 265.723756 50.1576
+L 269.923756 52.2576
+L 265.723756 54.3576
+L 265.723756 50.1576
+z
+" style="fill: #526674; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 472.591266 52.2576
+Q 482.68663 52.2576 491.104943 52.2576
+" style="fill: none; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 486.904943 50.1576
+L 491.104943 52.2576
+L 486.904943 54.3576
+L 486.904943 50.1576
+z
+" style="fill: #526674; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="text_4">
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(290.987984 140.106116)">At least 20% repeatable gain?</text>
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(311.248609 152.423709)">No material regression</text>
+   </g>
+   <g id="patch_10">
+    <path d="M 593.437148 82.083912
+Q 556.991679 110.739852 521.864551 138.359222
+" style="fill: none; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 526.46419 137.414063
+L 521.864551 138.359222
+L 523.868207 134.112416
+L 526.46419 137.414063
+z
+" style="fill: #526674; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="text_5">
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(83.303094 228.478916)">Yes: keep baseline + tuning</text>
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(88.689656 240.796509)">New performance version</text>
+   </g>
+   <g id="text_6">
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(485.599016 228.478916)">No: keep baseline + tuning</text>
+    <text style="fill: #172a3b; font: 11px 'DejaVu Sans'" transform="translate(476.634875 240.796509)">Report modest/negative result</text>
+   </g>
+   <g id="patch_11">
+    <path d="M 268.230375 169.806277
+Q 214.848027 186.116392 163.069539 201.936473
+" style="fill: none; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 167.699859 202.717585
+L 163.069539 201.936473
+L 166.472621 198.700884
+L 167.699859 202.717585
+z
+" style="fill: #526674; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 479.354344 169.97539
+Q 518.974366 186.115734 557.041268 201.623371
+" style="fill: none; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 553.943916 198.094007
+L 557.041268 201.623371
+L 552.359366 201.983634
+L 553.943916 198.094007
+z
+" style="fill: #526674; stroke: #526674; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p7d41fd2fbd">
+   <rect x="14.4" y="5.472" width="691.2" height="259.92"/>
+  </clipPath>
+ </defs>
+</svg>

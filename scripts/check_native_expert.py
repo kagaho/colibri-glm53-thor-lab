@@ -5,6 +5,7 @@ Can run once a complete expert shard is downloaded. It does not claim the whole
 checkpoint is ready and does not measure inference performance.
 """
 import hashlib
+import argparse
 import json
 import os
 from pathlib import Path
@@ -16,6 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output', type=Path, default=ROOT/'results/native-expert-check.json')
+    args = parser.parse_args()
     import numpy as np
     cfg = json.loads((ROOT / "configs/experiment.json").read_text())
     model = ROOT / cfg["model_directory"]
@@ -84,7 +88,8 @@ def main():
         "model_revision": cfg["model_revision"], "numpy_version": np.__version__,
         "method": "Independent nibble/gs64 decode and NumPy matvec vs upstream C matvec; compare first five rows and full-output sum",
         "scope": "Two actual expert projections; not a full-checkpoint oracle or a throughput benchmark", "cases": cases}
-    (ROOT / "results/native-expert-check.json").write_text(json.dumps(result, indent=2) + "\n")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
     if result["status"] != "passed":
         raise SystemExit(1)
