@@ -55,7 +55,7 @@ The right panel adds model/server startup to the first request's first-output
 latency. It omits validation and harness gaps. More GPU residency can speed up
 a loaded session while increasing the wait when starting one.
 
-## New 30-second Rust demo
+## 32 GiB GPU expert tier — 30-second Rust demo
 
 <!-- DEMO START -->
 

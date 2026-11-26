@@ -1,6 +1,20 @@
-# Real Rust Fibonacci terminal demo
+# Real Rust Fibonacci terminal demos
 
 [README demo](../README.md#watch-glm-write-rust-in-30-seconds) · [Interactive guide](INTERACTIVE.md) · [All files](INDEX.md)
+
+Two configurations are recorded: a **16 GiB GPU expert tier** in the original
+study and a **32 GiB GPU expert tier** in the follow-up. Both use the same
+32 decimal GB RAM cache, conservative CUDA settings, and Rust Fibonacci question.
+
+| Configuration | Real session duration | Playback | Source and timing |
+|---|---:|---:|---|
+| 16 GiB GPU expert tier | 212.2 s | 30 s | [Original metadata](../results/rust-fibonacci-demo.json) |
+| 32 GiB GPU expert tier | 210.3 s | 30 s | [Follow-up demo](../Tunning-Enhance-1/README.md#32-gib-gpu-expert-tier--30-second-rust-demo) · [Metadata](../Tunning-Enhance-1/results/rust-fibonacci-demo.json) |
+
+These are separate single chat sessions, not the source of the repeated HTTP
+benchmark gains. Their waiting times are essentially unchanged. The instructions
+below describe the original **16 GiB** recording; the
+[follow-up reproduction guide](../Tunning-Enhance-1/REPRODUCE.md) covers 32 GiB.
 
 The [30-second GIF](assets/rust-fibonacci-30s.gif) replays actual timestamped
 input/output from `scripts/chat.py`, asking GLM-5.3-Flash to write Rust code.

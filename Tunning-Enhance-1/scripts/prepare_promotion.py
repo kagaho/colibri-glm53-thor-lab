@@ -30,12 +30,12 @@ def main():
     oh=old['http_summary']
     verdict='Meets the predeclared 20% target.' if decision['promote'] else 'Below the predeclared 20% considerable-gain target; retained as a documented tuning result.'
     block=['<!-- TUNING ENHANCE 1 START -->','','## Tuning history','',
-        'Every experiment keeps its own inputs, results, charts, and real terminal recording. The original benchmark above is retained.','',
+        'Every experiment keeps its own inputs, results, charts, and real terminal recording. The original benchmark is retained.','',
         '| Study | Date (UTC) | Configuration and scope | Evidence |',
         '|---|---|---|---|',
         '| Original benchmark | 2026-11-25 | CPU and 16 GiB GPU tier, one server start each | [Original results](docs/RESULTS.md) |',
         '| Tunning-Enhance-1 | 2026-11-26 | GPU tier 16 → 32 GiB; RAM cache fixed at 32 GB; three matched pairs | [Complete study](Tunning-Enhance-1/README.md) |','',
-        '### Tunning-Enhance-1: larger GPU expert tier','',
+        '### 4. Tunning-Enhance-1: 16 versus 32 GiB GPU expert tier','',
         f'**32 GiB GPU expert tier: {t:+.1%} paired median completion throughput; {l:+.1%} reduction in first-output latency.**',
         verdict,'',
         'Three fresh paired trials compare 16 versus 32 GiB on the same Thor, with the RAM expert cache held at 32 decimal GB and the conservative CUDA workaround retained.','',
@@ -52,37 +52,12 @@ def main():
         'The startup-plus-first-request row adds matching timings and omits validation/harness gaps; it is not an exact command-to-token measurement. [Startup and memory trade-offs](Tunning-Enhance-1/RESULTS.md#memory-io-and-startup-trade-offs).','',
         'Throughput includes prefill and HTTP overhead. TTFT is time to first nonempty streamed output, not exact first-token timing. The paired percentages and profile medians summarize different quantities; individual observations and the fixed promotion criterion are linked below. These are measurements on this machine/workload, not a general speedup guarantee.','',
         '[Full tuning results](Tunning-Enhance-1/RESULTS.md) · [Paired gains and memory costs](Tunning-Enhance-1/README.md#repeatability-and-cost) · [Method](Tunning-Enhance-1/METHODOLOGY.md) · [All tuning files](Tunning-Enhance-1/INDEX.md)','',
-        '### New 30-second Rust demo','',
-        '![Real 32 GiB terminal session with accelerated source clock](Tunning-Enhance-1/assets/rust-fibonacci-30s.gif)','',
-        f"The same Rust Fibonacci question, recorded with the 32 GiB configuration: **{demo['source_duration_seconds']:.1f} real seconds at {demo['acceleration_factor']:.2f}×**, plus a three-second final hold, for exactly 30 seconds of playback. This single demo is separate from the paired benchmark. [Source and timing](Tunning-Enhance-1/results/rust-fibonacci-demo.json).",'',
-        'Try the 32 GiB study configuration after the [normal model setup](docs/REPRODUCE.md):','',
-        '```bash','python3 Tunning-Enhance-1/scripts/chat.py --max-tokens 512','```','',
         '<!-- TUNING ENHANCE 1 END -->']
     path=ROOT/'README.md'; text=path.read_text(); replacement='\n'.join(block)
     if '<!-- TUNING ENHANCE 1 START -->' in text:
         text=re.sub(r'<!-- TUNING ENHANCE 1 START -->.*?<!-- TUNING ENHANCE 1 END -->',replacement,text,flags=re.S)
     else:
-        anchor='## Watch GLM write Rust in 30 seconds'
-        if anchor not in text: raise SystemExit('Expected baseline README section not found; review before changing layout.')
-        text=text.replace(anchor,replacement+'\n\n'+anchor,1)
-    text=text.replace('[Results](#benchmark-results) · [30-second demo]', '[Results](#benchmark-results) · [Tuning history](#tuning-history) · [30-second demo]',1)
-    label='**Original benchmark — 2026-11-25 UTC, one server start per configuration.**'
-    if label not in text:
-        text=text.replace('## Benchmark results\n','## Benchmark results\n\n'+label+'\n',1)
-    demo_label='**Original 16 GiB recording — retained alongside the new 32 GiB demo above.**'
-    if demo_label not in text:
-        text=text.replace('## Watch GLM write Rust in 30 seconds\n',
-            '## Watch GLM write Rust in 30 seconds\n\n'+demo_label+'\n',1)
-    scope='The following status block covers the original benchmark dataset; tuning runs are listed separately above.'
-    if scope not in text:
-        text=text.replace('<!-- STATUS START -->',scope+'\n\n<!-- STATUS START -->',1)
-    phase_scope='**Original benchmark phase measurements.** [Tunning-Enhance-1 phase comparison](Tunning-Enhance-1/assets/phases-and-io.png).'
-    if phase_scope not in text:
-        text=text.replace('## Where the time goes\n','## Where the time goes\n\n'+phase_scope+'\n',1)
-    io_scope='**Original benchmark storage/placement measurements.** [Tunning-Enhance-1 memory and I/O costs](Tunning-Enhance-1/RESULTS.md#memory-io-and-startup-trade-offs).'
-    if io_scope not in text:
-        text=text.replace('## What SSD streaming and memory placement look like\n',
-            '## What SSD streaming and memory placement look like\n\n'+io_scope+'\n',1)
+        raise SystemExit('Expected tuning-results block not found; review README placement before publication.')
     path.write_text(text)
     print('Prepared side-by-side tuning history, retaining the original benchmark and demo. No Git push or release was performed.')
 
