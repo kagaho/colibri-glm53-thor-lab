@@ -10,13 +10,17 @@ GB**, and `COLI_CUDA_TC_GEMM=0` remains enabled as the validated workaround.
 
 <!-- STUDY STATUS START -->
 
-**Status:** 3 recorded attempt(s), 1/3 complete pairs; **pending_or_failed_checks**.
+**Status:** 7 recorded attempt(s), 3/3 complete pairs; **threshold_not_met**.
 
 | Configuration | Independent starts | Median batch completion tok/s | Median server TTFT-proxy p50 | Answer checks |
 |---|---:|---:|---:|---:|
 | cpu-32 | 1 | 0.372 | 46.51 s | 2/2 |
-| cuda-conservative-16-32 | 1 | 0.476 | 30.54 s | 2/2 |
-| cuda-conservative-32-32 | 1 | 0.523 | 27.71 s | 2/2 |
+| cuda-conservative-16-32 | 3 | 0.480 | 30.32 s | 6/6 |
+| cuda-conservative-32-32 | 3 | 0.539 | 27.66 s | 6/6 |
+
+**Paired median:** throughput +9.8%; TTFT-proxy reduction +9.3%. These compare fresh 32 GiB trials with fresh 16 GiB trials, not the historical session.
+
+The completed measurements did not meet the predeclared considerable-gain target. The parent baseline remains unchanged; this study is documented without a headline upgrade or a new performance release under that rule.
 
 <!-- STUDY STATUS END -->
 
@@ -29,7 +33,7 @@ GB**, and `COLI_CUDA_TC_GEMM=0` remains enabled as the validated workaround.
 - Matched short/long raw-logit finiteness probes for CPU and both CUDA budgets.
 - A new real Rust Fibonacci terminal recording using the 32 GiB configuration.
 
-<img src="assets/study-workflow.png" alt="Repeat validation, alternate 16 and 32 GiB runs, check correctness and memory, then promote only if the fixed considerable-gain criterion is met." width="760">
+<img src="assets/study-workflow.png" alt="Repeat validation and paired runs, retain baseline and tuning together, and create a performance version only if the considerable-gain criterion is met." width="760">
 
 ## Repeatability and cost
 
@@ -54,9 +58,13 @@ a loaded session while increasing the wait when starting one.
 ## New 30-second Rust demo
 
 <!-- DEMO START -->
-The new real 32 GiB recording is queued after the paired benchmark and numerical
-checks. It will repeat the original Rust Fibonacci prompt and use an accelerated
-elapsed-time clock, with exactly 30 seconds of playback.
+
+![Real 32 GiB Rust Fibonacci session with an accelerated elapsed-time clock](assets/rust-fibonacci-30s.gif)
+
+The same prompt and output cap as the original demo, using this study's `scripts/chat.py`: **210.3 real seconds at 7.79×**, followed by a 3-second hold, for exactly 30 seconds. Model loading is excluded; this single demonstration is not the paired benchmark.
+
+[Source/timing](results/rust-fibonacci-demo.json) · [Terminal output](results/rust-fibonacci-output.txt).
+
 <!-- DEMO END -->
 
 ## Promotion rule
@@ -65,5 +73,6 @@ The criterion was fixed before observing results: at least **20% median paired
 throughput improvement or TTFT-proxy reduction**, improving in all three pairs
 for that metric, with no more than **5% median paired regression** in the other
 metric. Every quality, finite-output, placement, memory, and container check must
-pass. A passing outcome can be promoted to the parent README and a new version;
-a negative outcome remains documented in this folder.
+pass. Every completed tuning is documented alongside the original benchmark in
+the parent README, including small or negative results. Meeting this target can
+also justify a new performance version; publication does not replace old data.

@@ -71,8 +71,10 @@ def main():
         (r['profile']=='cpu-32' or (r.get('observed_device_expert_tier') and
             not r['observed_device_expert_tier']['clamped_below_requested'] and
             r.get('cuda_routed_expert_execution_verified'))) for r in runs)
+    if complete:
+        checks_ok=checks_ok and state.get('containers_unchanged') is True
     gates={}
-    for file in ('model-validation.json','build-validation.json','native-expert-check.json','numerical-diagnostics.json'):
+    for file in ('model-validation.json','build-validation.json','native-expert-check.json','numerical-diagnostics.json','regression-validation.json'):
         path=STUDY/'results'/file
         gates[file]=json.loads(path.read_text()).get('status')=='passed' if path.exists() else None
     validated=all(v is True for v in gates.values())
@@ -88,6 +90,10 @@ def main():
                 'throughput_range':[min(rates),max(rates)],'median_of_server_first_output_p50_seconds':statistics.median(first),
                 'median_startup_seconds':statistics.median(r['startup_seconds'] for r in selected),
                 'median_startup_plus_first_request_output_seconds':statistics.median(r['startup_seconds']+r['http_attempts'][0]['first_output_seconds'] for r in selected),
+                'minimum_global_available_gib_across_starts':min(r['minimum_global_memavailable_bytes'] for r in selected)/2**30,
+                'median_measured_read_bytes':statistics.median(r['measurement_read_bytes'] for r in selected),
+                'median_mean_engine_phase_seconds':{key:statistics.median(statistics.mean(t[key] for t in r['engine_profile']['turns']) for r in selected)
+                    for key in ('expert_matmul_s','expert_disk_s','attention_s','lm_head_s')},
                 'server_first_output_p50_range':[min(first),max(first)],
                 'quality_passed':sum(r['quality_passed'] for r in selected),'quality_total':sum(r['quality_total'] for r in selected)}
             shares=[]
@@ -115,6 +121,16 @@ def main():
     lines+=['','## Paired improvements','','| Pair | Throughput change | TTFT-proxy reduction |','|---|---:|---:|']
     for pair in pairs:
         lines.append(f"| {pair['pair']} | {pair['throughput_gain_fraction']:+.1%} | {pair['ttft_reduction_fraction']:+.1%} |")
+    if plan['baseline_profile'] in aggregate and plan['candidate_profile'] in aggregate:
+        a,b=aggregate[plan['baseline_profile']],aggregate[plan['candidate_profile']]
+        lines+=['','## Memory, I/O, and startup trade-offs','',
+            '| Measured cost | 16 GiB tier | 32 GiB tier |','|---|---:|---:|',
+            f"| Median server startup | {a['median_startup_seconds']:.2f} s | {b['median_startup_seconds']:.2f} s |",
+            f"| Approx. startup + first-request output | {a['median_startup_plus_first_request_output_seconds']:.2f} s | {b['median_startup_plus_first_request_output_seconds']:.2f} s |",
+            f"| Lowest global available memory across starts | {a['minimum_global_available_gib_across_starts']:.2f} GiB | {b['minimum_global_available_gib_across_starts']:.2f} GiB |",
+            f"| Median physical reads over four HTTP requests | {a['median_measured_read_bytes']/1e9:.1f} GB | {b['median_measured_read_bytes']/1e9:.1f} GB |",
+            f"| Median per-start mean expert-compute timer | {a['median_mean_engine_phase_seconds']['expert_matmul_s']:.2f} s | {b['median_mean_engine_phase_seconds']['expert_matmul_s']:.2f} s |",'',
+            f"The engine's device-served/routed share at the end of the HTTP stage rose from {a.get('median_engine_device_served_share_at_http_end',0):.1%} to {b.get('median_engine_device_served_share_at_http_end',0):.1%}. This is that counter's ratio, not a CPU-cache hit rate. More GPU residency accompanies less host expert work; these observations do not isolate a causal kernel speedup. Phase timers may overlap.",'']
     lines+=['','## Decision','',f"**{decision['status']}**. Predeclared promotion threshold: at least 20% paired median improvement in throughput or first-output latency, improving in all three pairs for that metric, with no more than 5% paired median regression in the other metric; every correctness, placement, memory, and container check must pass.",
         '', '## Visual evidence','',
         '![Independent server-start throughput and first-output latency](assets/performance.png)','',
@@ -136,7 +152,7 @@ def main():
         if 'median_paired_throughput_gain_fraction' in decision:
             headline+=['',f"**Paired median:** throughput {decision['median_paired_throughput_gain_fraction']:+.1%}; TTFT-proxy reduction {decision['median_paired_ttft_reduction_fraction']:+.1%}. These compare fresh 32 GiB trials with fresh 16 GiB trials, not the historical session."]
         if decision['status']=='threshold_not_met':
-            headline+=['','The completed measurements did not meet the predeclared considerable-gain target. The parent baseline remains unchanged; no performance-gain release is justified by this study.']
+            headline+=['','The completed measurements did not meet the predeclared considerable-gain target. The parent baseline remains unchanged; this study is documented without a headline upgrade or a new performance release under that rule.']
         text=re.sub(r'<!-- STUDY STATUS START -->.*?<!-- STUDY STATUS END -->',
             '<!-- STUDY STATUS START -->\n\n'+'\n'.join(headline)+'\n\n<!-- STUDY STATUS END -->',readme.read_text(),flags=re.S)
         demo_path=STUDY/'results/rust-fibonacci-demo.json'

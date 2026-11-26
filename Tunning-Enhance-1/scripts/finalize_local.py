@@ -23,13 +23,22 @@ def main():
         (STUDY/'runtime/finalization-state.json').write_text(json.dumps(data,indent=2)+'\n')
         print(json.dumps(data),flush=True)
     state('waiting_for_paired_runs')
+    last_heartbeat=-60
     try:
         while True:
-            campaign=json.loads((STUDY/'runtime/campaign-state.json').read_text())
+            try:
+                campaign=json.loads((STUDY/'runtime/campaign-state.json').read_text())
+            except json.JSONDecodeError:
+                time.sleep(.25)
+                continue
             if campaign['phase']=='failed':
                 raise RuntimeError('Paired-run driver failed; finish did not replace its attempt')
             if campaign['phase']=='complete' and not alive(campaign['pid']):
                 break
+            if time.monotonic()-last_heartbeat>=45:
+                state('waiting_for_paired_runs',completed_runs=len(campaign.get('completed',[])),
+                      current_profile=campaign.get('profile'))
+                last_heartbeat=time.monotonic()
             time.sleep(10)
         commands=[('numerical_probes','check_numerics.py',[]),
                   ('recording_32gib_demo','record_demo.py',[]),

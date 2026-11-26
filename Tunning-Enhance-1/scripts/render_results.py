@@ -77,7 +77,7 @@ def paired(summary,sha):
     ax.set_ylabel('Improvement (%) · positive is better')
     low,high=ax.get_ylim(); ax.set_ylim(min(low,-5),max(high*1.2,35))
     ax.yaxis.grid(True,color='#e7edf1'); ax.set_axisbelow(True)
-    ax.legend(loc='upper left',bbox_to_anchor=(0,-.17),ncol=2,frameon=False,fontsize=9)
+    ax.legend(loc='upper left',bbox_to_anchor=(0,-.17),ncol=3,frameon=False,fontsize=8.3)
     fig.text(.06,.045,'The winning metric must improve in all three pairs; other metric may not regress by more than 5% at the paired median.',fontsize=9,color='#526674')
     save(fig,'paired-gains',sha)
 
@@ -179,8 +179,8 @@ def workflow(sha):
     arrow((.31,.82),(.375,.82)); arrow((.66,.82),(.695,.82))
     box(.52,.47,'At least 20% repeatable gain?\nNo material regression',color='#fff4d9',w=.42)
     arrow((.84,.71),(.73,.48))
-    box(.21,.13,'Yes: update main README\nand publish a new release',color='#edf6f6',w=.36)
-    box(.79,.13,'No: retain study evidence\nwithout claiming a speedup',color='#fbeded',w=.36)
+    box(.21,.13,'Yes: keep baseline + tuning\nNew performance version',color='#edf6f6',w=.36)
+    box(.79,.13,'No: keep baseline + tuning\nReport modest/negative result',color='#fbeded',w=.36)
     arrow((.37,.37),(.21,.24)); arrow((.67,.37),(.79,.24))
     save(fig,'study-workflow',sha)
 

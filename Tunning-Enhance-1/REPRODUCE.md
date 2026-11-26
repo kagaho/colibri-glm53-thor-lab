@@ -3,6 +3,8 @@
 Start in the parent repository and complete its [engine/model setup](../docs/REPRODUCE.md).
 This study reuses the pinned engine and 195 GB checkpoint; it does not download
 or duplicate them. The experiment needs the host free of other model sessions.
+Full validation uses NumPy; plotting uses Matplotlib, and GIF replay uses
+Pillow, pyte, and DejaVu Sans Mono. The study records the versions used on Thor.
 
 ```bash
 python3 Tunning-Enhance-1/scripts/run_study.py
@@ -16,6 +18,16 @@ state. Failed attempts are retained. To inspect live progress:
 cat Tunning-Enhance-1/runtime/campaign-state.json
 python3 scripts/status.py
 ```
+
+To queue the remaining numerical checks, recording, and visualizations behind
+the benchmark, run this in a second terminal:
+
+```bash
+python3 Tunning-Enhance-1/scripts/finalize_local.py
+```
+
+Its progress is in `Tunning-Enhance-1/runtime/finalization-state.json`. The
+manual steps below perform the same post-check work; use one path per capture.
 
 The existing `python3 scripts/stop.py campaign` stops only this owned driver;
 `python3 scripts/stop.py server` targets its recorded owned server. Existing
@@ -54,6 +66,16 @@ python3 Tunning-Enhance-1/scripts/render_demo.py
 The chart renderer needs [Matplotlib](../requirements-docs.txt). Graphs read only
 the public `results/summary.json`. Stage new study files before rendering the
 folder index; otherwise untracked files are not listed.
+
+Once the final evidence and GIF are verified, prepare an additive comparison in
+the parent README. The original benchmark and recording are retained:
+
+```bash
+python3 Tunning-Enhance-1/scripts/prepare_promotion.py
+```
+
+This command does not push Git commits or publish a release. A new performance
+version remains conditional on the predeclared considerable-gain criterion.
 
 ## Boundaries
 

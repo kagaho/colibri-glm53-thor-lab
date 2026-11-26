@@ -20,6 +20,10 @@ The four requests in a start are correlated. The three starts per CUDA profile
 are the independent repetitions. The CPU reference has one start and does not
 support a repeated CPU comparison claim.
 
+Here, a fresh server is the repetition unit. This does not establish statistical
+independence: OS caches, thermal state, and user-service activity persist across
+starts. Reported improvements are descriptive observations on this host.
+
 The requested model seed is not invented; temperature-zero sampling is explicit.
 No OS cache eviction is forced. Earlier validation, file reads, user services,
 and prior runs may warm page caches. Pair order alternates to reduce a single
@@ -43,6 +47,10 @@ results from an earlier session. A considerable gain is at least 20% in one
 metric, an improvement in all three pairs for that metric, and no more than 5%
 median regression in the other. This is a practical target, not a significance
 test or a promised result.
+
+All completed tuning results are retained and compared with the historical
+baseline, even below this target. The criterion controls a considerable-gain
+claim/new performance version, not whether an experiment is documented.
 
 ## Correctness and resource gates
 

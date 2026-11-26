@@ -1,0 +1,20 @@
+test_does_not_treat_missing_or_empty_quality_checks_as_a_pass (test_lab.FigureQualityGateTests.test_does_not_treat_missing_or_empty_quality_checks_as_a_pass) ... ok
+test_excludes_fast_protocol_success_when_output_is_invalid (test_lab.FigureQualityGateTests.test_excludes_fast_protocol_success_when_output_is_invalid) ... ok
+test_accepts_complete_native_geometry (test_lab.NativeValidationTests.test_accepts_complete_native_geometry) ... ok
+test_rejects_incomplete_download (test_lab.NativeValidationTests.test_rejects_incomplete_download) ... ok
+test_rejects_missing_shard (test_lab.NativeValidationTests.test_rejects_missing_shard) ... ok
+test_rejects_out_of_file_offsets (test_lab.NativeValidationTests.test_rejects_out_of_file_offsets) ... ok
+test_rejects_wrong_model_revision (test_lab.NativeValidationTests.test_rejects_wrong_model_revision) ... ok
+test_rejects_wrong_scale_geometry (test_lab.NativeValidationTests.test_rejects_wrong_scale_geometry) ... ok
+test_accepts_recently_closed_server_port (test_lab.PortPreflightTests.test_accepts_recently_closed_server_port) ... ok
+test_rejects_live_listener (test_lab.PortPreflightTests.test_rejects_live_listener) ... ok
+test_failure_is_retained_without_private_commands (test_lab.PublicSummaryTests.test_failure_is_retained_without_private_commands) ... ok
+test_missing_placement_is_unknown (test_lab.PublicSummaryTests.test_missing_placement_is_unknown) ... ok
+test_protocol_success_with_nonfinite_logits_is_invalid_output (test_lab.PublicSummaryTests.test_protocol_success_with_nonfinite_logits_is_invalid_output) ... ok
+test_reports_clamped_tier_from_observed_log (test_lab.PublicSummaryTests.test_reports_clamped_tier_from_observed_log) ... ok
+test_reports_full_requested_device_budget (test_lab.PublicSummaryTests.test_reports_full_requested_device_budget) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.033s
+
+OK
