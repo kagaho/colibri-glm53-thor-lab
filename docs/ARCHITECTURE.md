@@ -106,3 +106,15 @@ On a fresh documentation-only clone, use the renderer directly. Summarizing
 local attempts when no raw runs exist would replace the measured snapshot with
 an empty local report. Stage any new public files before regenerating the
 file index so the inventory includes them.
+
+The README also has a cross-study chart that keeps the original CPU/16 GiB
+measurements separate from the follow-up CPU/16/32 GiB results. Rebuild it from
+the two committed summaries, without loading the model:
+
+```bash
+python3 scripts/render_comparison.py
+```
+
+Its [own provenance file](assets/benchmark-comparison.json) records both input
+hashes, the plotted values, the renderer hash, and the aggregation definitions.
+The original figures and their manifest retain their original dataset scope.

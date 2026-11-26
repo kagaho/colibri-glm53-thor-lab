@@ -1,16 +1,88 @@
 # GLM-5.3-Flash native int4 on Jetson Thor
 
-**A 195 GB native int4 checkpoint on one 128 GB NVIDIA Jetson Thor.**
-This study tests Colibri's SSD-backed expert streaming, compares CPU and CUDA,
-and measures how long you wait for output when the model exceeds RAM.
+**A 195 GB native int4 model on one 128 GB NVIDIA Jetson Thor.**
+This repository measures GLM-5.3-Flash with Colibri's SSD-backed expert streaming:
+weights stay on NVMe, a bounded RAM cache holds experts, and an optional GPU
+expert tier trades shared memory for faster computation. The aim is to show
+what runs correctly, how long output takes, and what each configuration costs.
 
-[Results](#benchmark-results) · [Tuning history](#tuning-history) · [30-second demo](#watch-glm-write-rust-in-30-seconds) · [Run it](#run) · [How it works](docs/ARCHITECTURE.md) · [All files](docs/INDEX.md)
+[Comparison](#comparison-at-a-glance) · [Benchmarks](#benchmark-results) · [16 → 32 GiB tuning](#tuning-history) · [Rust demos](#watch-glm-write-rust-in-30-seconds) · [Run it](#run) · [All files](docs/INDEX.md) · [Conclusion](#conclusion)
 
-![CPU versus conservative CUDA: completion tokens per second and TTFT proxy](docs/assets/results-overview.png)
+## Setting and benchmark plan
+
+The host is **shockwave-01, a Jetson AGX Thor** with one shared CPU/GPU memory
+pool (122.7 GiB reported usable RAM), 14 available CPU threads, a 1 TB WD NVMe,
+no swap, and the existing 120 W power profile. The engine is pinned to
+**Colibri v2.2.0**, using native group-64 int4 experts and runtime dense precision
+of 4 bits. Every performance configuration uses a **32 decimal GB RAM expert
+cache**, an 8,192-token context, and one request at a time.
+[Exact hardware and software](results/environment.json) · [Pinned inputs](#pinned-inputs).
+
+The study follows these questions in order. GPU-tier budgets are **GiB**;
+the RAM-cache budget is decimal **GB**. Both consume the same physical RAM.
+
+| Benchmark | Setting | Why test it? | Trade-off / observed result |
+|---|---|---|---|
+| **1. CPU reference** | GPU disabled; 32 GB RAM expert cache | Establish useful output and a reference for CUDA | Largest memory headroom; slowest output in these runs |
+| **2. Default CUDA diagnostic** | 16 GiB GPU expert tier; default tensor-core GEMMs | Check correctness before trusting speed | Non-finite logits; invalid output, excluded from speed charts |
+| **3. Conservative CUDA baseline** | 16 GiB GPU expert tier; `COLI_CUDA_TC_GEMM=0` | Measure a working GPU configuration against CPU | Faster first output, but less available shared memory |
+| **4. Tunning-Enhance-1** | Conservative CUDA, 16 versus 32 GiB; RAM cache stays 32 GB | Test whether more GPU-resident experts help across three matched pairs | Modest improvement, lower memory headroom, and longer startup |
+| **5. Rust Fibonacci demonstrations** | One real chat session at each GPU budget; same question and 512-token cap | Show the actual wait and terminal response | Both take about 210–212 seconds; GIFs accelerate playback, not inference |
+
+The original benchmark (2026-11-25 UTC) has one CPU and one valid 16 GiB CUDA
+server start, plus the failed default-CUDA attempt. The follow-up (2026-11-26
+UTC) repeats the CPU reference once and runs **three fresh 16/32 GiB pairs** in
+alternating order. Each successful performance start measures four HTTP requests with a 64-token cap
+and two separate arithmetic/sorting checks. These are short workload and
+correctness checks, not a broad model-quality evaluation.
+
+## Comparison at a glance
+
+![Historical and follow-up CPU, 16 GiB CUDA, and 32 GiB CUDA: completion throughput, first-output latency, and lowest available shared memory](docs/assets/benchmark-comparison.png)
+
+**Read the two groups separately:** historical bars are single server starts;
+follow-up CUDA speed and latency bars are medians across three starts; the CPU bar
+is one reference start. Memory is the lowest global available value observed,
+not a model allocation measurement. [Chart data and provenance](docs/assets/benchmark-comparison.json).
+
+In the matched follow-up, the **32 GiB tier improves median paired throughput
+by 9.8% and reduces first-output latency by 9.3%**. It leaves **37.91 GiB** of
+minimum observed available RAM versus **52.36 GiB** for 16 GiB, and median
+startup rises from **42.06 to 44.45 seconds**. This is below the predeclared
+20% considerable-gain target; both configurations and all historical results
+are retained. The chart's profile medians and the median of paired percentage
+changes are different summaries; gains are computed only from fresh matched pairs.
+
+**Metric scope:** completion tok/s includes prefill and HTTP overhead. The
+**TTFT proxy** is time to first nonempty streamed output, possibly reasoning;
+exact first-token timing, inter-token latency, and steady-state decode speed
+were not measured. Three pairs on one host with uncontrolled OS caches and
+background services provide descriptive results, not a significance claim.
 
 ## Benchmark results
 
+### 1. CPU reference
+
+CPU-only execution establishes a useful-output reference without a GPU expert
+tier. The original start delivered **0.415 completion tok/s** with **44.47 seconds**
+to first output (p50); the fresh follow-up reference delivered **0.372 tok/s**
+and **46.51 seconds**. Each is one server start, so their difference is not a
+controlled regression result. The CPU run retained about **75 GiB** of minimum
+available memory, more headroom than either CUDA configuration.
+
+### 2. Default CUDA: correctness before speed
+
+The default 16 GiB CUDA attempt produced non-finite logits and invalid output.
+It also reported only 1.54 GiB of the requested expert tier. Matched diagnostic
+probes established `COLI_CUDA_TC_GEMM=0` as the working workaround used for both
+valid GPU budgets. The underlying kernel issue remains open; the workaround
+is not a kernel fix. [Diagnostic evidence](docs/DIAGNOSTICS.md) · [Issues and fixes](docs/ISSUES_AND_PRS.md).
+
+### 3. Conservative 16 GiB CUDA baseline
+
 **Original benchmark — 2026-11-25 UTC, one server start per configuration.**
+
+![Original CPU versus conservative 16 GiB CUDA: completion throughput and TTFT proxy](docs/assets/results-overview.png)
 
 <!-- METRICS START -->
 
@@ -47,14 +119,14 @@ is excluded from the useful-output comparison.
 
 ## Tuning history
 
-Every experiment keeps its own inputs, results, charts, and real terminal recording. The original benchmark above is retained.
+Every experiment keeps its own inputs, results, charts, and real terminal recording. The original benchmark is retained.
 
 | Study | Date (UTC) | Configuration and scope | Evidence |
 |---|---|---|---|
 | Original benchmark | 2026-11-25 | CPU and 16 GiB GPU tier, one server start each | [Original results](docs/RESULTS.md) |
 | Tunning-Enhance-1 | 2026-11-26 | GPU tier 16 → 32 GiB; RAM cache fixed at 32 GB; three matched pairs | [Complete study](Tunning-Enhance-1/README.md) |
 
-### Tunning-Enhance-1: larger GPU expert tier
+### 4. Tunning-Enhance-1: 16 versus 32 GiB GPU expert tier
 
 **32 GiB GPU expert tier: +9.8% paired median completion throughput; +9.3% reduction in first-output latency.**
 Below the predeclared 20% considerable-gain target; retained as a documented tuning result.
@@ -80,7 +152,30 @@ Throughput includes prefill and HTTP overhead. TTFT is time to first nonempty st
 
 [Full tuning results](Tunning-Enhance-1/RESULTS.md) · [Paired gains and memory costs](Tunning-Enhance-1/README.md#repeatability-and-cost) · [Method](Tunning-Enhance-1/METHODOLOGY.md) · [All tuning files](Tunning-Enhance-1/INDEX.md)
 
-### New 30-second Rust demo
+<!-- TUNING ENHANCE 1 END -->
+
+## Watch GLM write Rust in 30 seconds
+
+### 5. Real chat demonstrations
+
+Both recordings ask for the same iterative Rust Fibonacci program. They show
+single preloaded chat sessions, separate from the repeated HTTP benchmark.
+Each GIF lasts exactly 30 seconds: 27 seconds of accelerated source events and
+a three-second final hold. The clock shows real elapsed source-session time.
+
+### 16 GiB GPU expert tier — 30-second Rust demo
+
+![Real accelerated terminal session: GLM-5.3-Flash writes an iterative Rust Fibonacci program, with elapsed source time at top right](docs/assets/rust-fibonacci-30s.gif)
+
+A real `python3 scripts/chat.py --max-tokens 512` session, asking the native
+int4 model for an iterative Rust Fibonacci program. Playback is **30 seconds**.
+The **212-second session plays at 7.86×** for 27 seconds, followed by a 3-second final hold.
+The **top-right clock shows actual elapsed session time** and the playback
+multiplier. The recording begins at the ready prompt after model loading.
+
+[Capture details and reproduction](docs/DEMO.md) · [Actual terminal output](results/rust-fibonacci-output.txt) · [Timing and provenance](results/rust-fibonacci-demo.json)
+
+### 32 GiB GPU expert tier — 30-second Rust demo
 
 ![Real 32 GiB terminal session with accelerated source clock](Tunning-Enhance-1/assets/rust-fibonacci-30s.gif)
 
@@ -92,21 +187,10 @@ Try the 32 GiB study configuration after the [normal model setup](docs/REPRODUCE
 python3 Tunning-Enhance-1/scripts/chat.py --max-tokens 512
 ```
 
-<!-- TUNING ENHANCE 1 END -->
-
-## Watch GLM write Rust in 30 seconds
-
-**Original 16 GiB recording — retained alongside the new 32 GiB demo above.**
-
-![Real accelerated terminal session: GLM-5.3-Flash writes an iterative Rust Fibonacci program, with elapsed source time at top right](docs/assets/rust-fibonacci-30s.gif)
-
-A real `python3 scripts/chat.py --max-tokens 512` session, asking the native
-int4 model for an iterative Rust Fibonacci program. Playback is **30 seconds**.
-The **212-second session plays at 7.86×** for 27 seconds, followed by a 3-second final hold.
-The **top-right clock shows actual elapsed session time** and the playback
-multiplier. The recording begins at the ready prompt after model loading.
-
-[Capture details and reproduction](docs/DEMO.md) · [Actual terminal output](results/rust-fibonacci-output.txt) · [Timing and provenance](results/rust-fibonacci-demo.json)
+The 32 GiB session took **210.3 seconds** versus **212.2 seconds** for 16 GiB.
+This one coding response shows essentially unchanged waiting time; it does not
+demonstrate the paired HTTP benchmark's roughly 10% improvement. The generated
+Rust was inspected, not compiled or executed. [Original capture protocol](docs/DEMO.md).
 
 ## Where the time goes
 
@@ -132,7 +216,7 @@ share Thor's physical memory. The roughly **366–377 GB read per measured batch
 includes repeated reads of the 195 GB checkpoint.
 [Memory and I/O interpretation](docs/RESULTS.md#placement-and-storage-reads) · [Architecture diagram](docs/ARCHITECTURE.md).
 
-The following status block covers the original benchmark dataset; tuning runs are listed separately above.
+The following status block covers the original benchmark dataset; the follow-up is listed in the tuning history.
 
 <!-- STATUS START -->
 **Current status:** 3 full-model attempt(s) recorded, 2 completed. See [results](docs/RESULTS.md) for measurements and failures.
@@ -192,19 +276,18 @@ third-party requantization of Z.ai's weights, not an official int4 checkpoint.
 
 ## Experiment configurations
 
-| Profile | Backend | RAM expert-cache budget | Device expert-tier budget |
-|---|---|---:|---:|
-| `cpu-32` | CPU, same CUDA-capable executable with GPU disabled | 32 decimal GB | 0 |
-| `cuda-16-32` | CUDA | 32 decimal GB | 16 GiB |
-| `cuda-32-32` | CUDA, optional follow-up | 32 decimal GB | 32 GiB |
-| `cuda-conservative-16-32` | CUDA with tensor-core GEMMs disabled | 32 decimal GB | 16 GiB requested |
+| Measured profile | Config file | GPU expert tier | CUDA math |
+|---|---|---:|---|
+| `cpu-32` | [Original](configs/profiles.json) and [follow-up](Tunning-Enhance-1/configs/profiles.json) | Disabled | CPU reference |
+| `cuda-16-32` | [Original](configs/profiles.json) | 16 GiB requested | Default; invalid output |
+| `cuda-conservative-16-32` | [Original](configs/profiles.json) and [follow-up](Tunning-Enhance-1/configs/profiles.json) | 16 GiB | `COLI_CUDA_TC_GEMM=0` |
+| `cuda-conservative-32-32` | [Follow-up](Tunning-Enhance-1/configs/profiles.json) | 32 GiB | `COLI_CUDA_TC_GEMM=0` |
 
-Thor shares memory between CPU and GPU. Device allocations consume the same
-physical pool as the RAM expert cache. Explicit limits, a disabled extra host
-pool, and a memory monitor keep the first experiment conservative.
-
-These profiles change both expert residency and computation. An observed
-difference would be a whole-configuration result, not an isolated kernel speedup.
+Every row has the same 32 decimal GB RAM expert-cache budget. The optional
+`cuda-32-32` entry in the original config is an unmeasured default-math profile;
+it is not the conservative 32 GiB configuration used in the follow-up.
+CPU/GPU changes affect both expert residency and computation, so the CPU/CUDA
+comparison is a whole-configuration result, not an isolated kernel speedup.
 
 ## Run
 
@@ -229,8 +312,10 @@ python3 scripts/render_docs.py  # optional Matplotlib dependency
 
 The model download is approximately 195 GB. It is resumable and verified against
 the pinned repository's checksums. Keep at least 50 GiB free after staging it.
-Use [the detailed guide](docs/REPRODUCE.md) to run the campaign unattended and
-inspect progress with `python3 scripts/status.py`.
+Use [the detailed guide](docs/REPRODUCE.md) to run the original campaign unattended
+and inspect progress with `python3 scripts/status.py`. To repeat the complete
+16/32 GiB comparison, use the [follow-up reproduction guide](Tunning-Enhance-1/REPRODUCE.md);
+it keeps that study's configuration, results, and figures in its own folder.
 
 ## Rebuild the documentation figures without downloading the model
 
@@ -239,6 +324,12 @@ no GPU, model weights, or private logs are required:
 
 ```bash
 python3 scripts/render_docs.py
+```
+
+Rebuild the cross-study opening chart from both public summaries:
+
+```bash
+python3 scripts/render_comparison.py
 ```
 
 For an isolated plotting environment, see [chart reproduction](docs/ARCHITECTURE.md#rebuild-the-charts-and-file-index).
@@ -276,3 +367,22 @@ See [References](docs/REFERENCES.md) for additional upstream sources.
 This project's original code and documentation are licensed under the [Apache License 2.0](LICENSE).
 
 Colibri and the GLM-5.3-Flash model are third-party components governed by their respective licenses.
+
+## Conclusion
+
+**Colibri runs this 195 GB native int4 checkpoint on one 128 GB-class Thor by
+streaming experts from SSD.** CPU and both conservative CUDA budgets pass the
+recorded smoke checks; default CUDA fails the numerical gate on this setup.
+
+The 16 GiB GPU tier offers more memory headroom. The 32 GiB tier is the faster
+loaded configuration in all three matched pairs, with **9.8% median paired
+throughput gain** and **9.3% lower first-output latency**, at the cost of less
+available memory and longer startup. The separate Rust demonstrations remain
+around **3.5 minutes** each. Neither configuration delivers a fast interactive
+chat experience on this workload.
+
+These gains fall below the declared 20% performance-release target. Both
+results document the trade-off; neither establishes a universal winner.
+Broader workloads and more repeated trials are needed before generalizing;
+see [next experiments](docs/NEXT_EXPERIMENTS.md) and the
+[complete tuning evidence](Tunning-Enhance-1/RESULTS.md).
